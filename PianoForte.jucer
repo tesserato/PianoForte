@@ -851,7 +851,8 @@
             smallIcon="jNGFyg">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" libraryPath="C:\Program Files\libtorchDebug\lib&#10;C:\Microsoft.AI.MachineLearning.1.9.1\runtimes\win-x64\_native\static"/>
-        <CONFIGURATION isDebug="0" name="Release" libraryPath="C:\Program Files\libtorch\lib&#10;C:\Microsoft.AI.MachineLearning.1.9.1\runtimes\win-x64\_native\static"/>
+        <CONFIGURATION isDebug="0" name="Release" libraryPath="C:\Program Files\libtorch\lib&#10;C:\Microsoft.AI.MachineLearning.1.9.1\runtimes\win-x64\_native\static"
+                       binaryPath="Releases"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="C:\Users\tesse\Desktop\Files\Reps\JUCE\modules"/>

@@ -6,6 +6,9 @@ Piano synthesiser based on a lightweight (~600KB, ~150k parameters) neural netwo
 
 [Further info about the algorithm and applications to voice and other instruments.](https://omnessonos.web.app/)
 
+# Dependencies
+
+[ONNX Runtime releases](https://github.com/microsoft/onnxruntime/releases)
 
 # Raw samples used for training:
 
