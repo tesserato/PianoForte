@@ -848,12 +848,13 @@
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
   <EXPORTFORMATS>
     <VS2022 targetFolder="Builds/VisualStudio2022" extraDefs="JUCE_MODAL_LOOPS_PERMITTED=1"
-            externalLibraries="torch_cpu.lib&#10;c10.lib&#10;torch.lib&#10;onnxruntime.lib"
+            externalLibraries="Release/onnxruntime_session.lib&#10;Release/onnxruntime_optimizer.lib&#10;Release/onnxruntime_providers.lib&#10;Release/onnxruntime_util.lib&#10;Release/onnxruntime_framework.lib&#10;Release/onnxruntime_graph.lib&#10;Release/onnxruntime_mlas.lib&#10;Release/onnxruntime_common.lib&#10;Release/onnxruntime_flatbuffers.lib&#10;Release/onnx_test_data_proto.lib&#10;_deps/onnx-build/Release/onnx.lib&#10;_deps/onnx-build/Release/onnx_proto.lib&#10;_deps/protobuf-build/Release/libprotobuf-lite.lib&#10;_deps/re2-build/Release/re2.lib&#10;_deps/abseil_cpp-build/absl/base/Release/absl_base.lib&#10;_deps/abseil_cpp-build/absl/base/Release/absl_throw_delegate.lib&#10;_deps/abseil_cpp-build/absl/container/Release/absl_raw_hash_set.lib&#10;_deps/abseil_cpp-build/absl/hash/Release/absl_hash.lib&#10;_deps/abseil_cpp-build/absl/hash/Release/absl_city.lib&#10;_deps/abseil_cpp-build/absl/hash/Release/absl_low_level_hash.lib"
             smallIcon="jNGFyg">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" libraryPath="C:\Program Files\libtorchDebug\lib&#10;C:\Microsoft.AI.MachineLearning.1.9.1\runtimes\win-x64\_native\static"/>
-        <CONFIGURATION isDebug="0" name="Release" libraryPath="C:\Program Files\libtorch\lib&#10;C:\Microsoft.AI.MachineLearning.1.9.1\runtimes\win-x64\_native\static"
-                       binaryPath="Releases"/>
+        <CONFIGURATION isDebug="0" name="Release" binaryPath="Releases" enablePluginBinaryCopyStep="0"
+                       libraryPath="C:\Users\tesse\Desktop\Files\Reps\onnxruntime\build\Windows\Release"
+                       useRuntimeLibDLL="0" headerPath="C:\Users\tesse\Desktop\Files\Reps\onnxruntime\include\onnxruntime"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="C:\Users\tesse\Desktop\Files\Reps\JUCE\modules"/>

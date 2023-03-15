@@ -17,6 +17,16 @@ for further info about the algorithm and applications to voice and other instrum
 
 [ONNX Runtime releases](https://github.com/microsoft/onnxruntime/releases)
 
+From rep root:
+` .\build.bat --enable_msvc_static_runtime --build_shared_lib --build --config Release`
+
+Then
+`.\build\Windows\Release> cmake.exe --build .`
+
+And ad path in projucer
+
+More details [here](https://github.com/microsoft/onnxruntime/issues/8555)
+
 # Raw samples used for training:
 
 #### [University of Iowa Electronic Music Studios](https://theremin.music.uiowa.edu/MISpiano.html)

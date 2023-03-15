@@ -4,7 +4,8 @@
 #include <math.h>       /* modf */
 #include <random>
 #include<functional> /*lambda functions*/
-#include <onnxruntime_cxx_api.h>
+//#include <onnxruntime_cxx_api.h>
+#include "core/session/onnxruntime_cxx_api.h"
 
 
 const static float MAX_NUMBER_OF_PERIODS = 4511.0;
@@ -93,9 +94,17 @@ private:
         inputTensor.push_back(Ort::Value::CreateTensor<float>(memoryInfo, I0.data(), MI.inputShape[0], MI.inputShape.data(), MI.inputShape.size()));
         outputTensor.push_back(Ort::Value::CreateTensor<float>(memoryInfo, targetAmps.data(), MI.outputShape[0], MI.outputShape.data(), MI.outputShape.size()));
         Ort::AllocatorWithDefaultOptions allocator;
-        std::vector<const char*> inputNames = { MI.session.GetInputName(0, allocator) };
-        std::vector<const char*> outputNames = { MI.session.GetOutputName(0, allocator) };
-        MI.session.Run(Ort::RunOptions{ nullptr }, inputNames.data(), inputTensor.data(), 1, outputNames.data(), outputTensor.data(), 1);
+        std::vector < const char*> inputNames = { MI.session.GetInputNameAllocated(0, allocator).get() };
+        std::vector < const char*> outputNames = { MI.session.GetOutputNameAllocated(0, allocator).get() };
+        MI.session.Run(
+            Ort::RunOptions{ nullptr }, 
+            inputNames.data(), 
+            inputTensor.data(), 
+            1, 
+            outputNames.data(), 
+            outputTensor.data(),
+            1
+        );
         //auto r = outputTensor.front().GetTensorMutableData<float>();
          
         //float ampsSum = 0.0;
