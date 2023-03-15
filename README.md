@@ -6,7 +6,13 @@ Piano synthesiser based on a lightweight (~600KB, ~150k parameters) neural netwo
 
 [Further info about the algorithm and applications to voice and other instruments.](https://omnessonos.web.app/)
 
-# Dependencies
+# Download
+
+## [VST3](https://github.com/tesserato/PianoForte/tree/main/Releases/VST3)
+
+## [Standalone (Windows x64)](https://github.com/tesserato/PianoForte/tree/main/Releases/Standalone%20Plugin)
+
+# Dependencies (Only if you intend to build from source)
 
 [ONNX Runtime releases](https://github.com/microsoft/onnxruntime/releases)
 
