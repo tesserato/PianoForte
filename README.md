@@ -4,7 +4,8 @@
 
 Piano synthesiser based on a lightweight (~600KB, ~150k parameters) neural network and a novel representation for Quasi-Periodic signals.
 
-[Further info about the algorithm and applications to voice and other instruments.](https://omnessonos.web.app/)
+Visit [OmnesSonos.web.app](https://omnessonos.web.app/)
+for further info about the algorithm and applications to voice and other instruments.
 
 # Download
 

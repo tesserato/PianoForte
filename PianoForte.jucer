@@ -5,8 +5,9 @@
               pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn"
               cppLanguageStandard="17" pluginFormats="buildStandalone,buildVST3"
               companyName="Omnes Sonos" companyEmail="tesserato@hotmail.com"
-              companyWebsite="https://omnessonos.web.app/" headerPath="C:\Users\tesse\Desktop\Files\Reps\piano\include"
-              pluginName="PianoForte" version="0.0.0" pluginManufacturerCode="Omsn">
+              companyWebsite="https://github.com/tesserato/PianoForte" headerPath="C:\Users\tesse\Desktop\Files\Reps\piano\include"
+              pluginName="PianoForte" version="0.0.0" pluginManufacturerCode="Omsn"
+              pluginVST3Category="Instrument">
   <MAINGROUP id="NPheXK" name="PianoForte">
     <FILE id="Q7SQjz" name="engine" compile="0" resource="1" file="Resources/engine"/>
     <FILE id="jNGFyg" name="icon.png" compile="0" resource="1" file="Resources/icon.png"/>
