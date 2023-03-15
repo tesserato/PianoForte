@@ -106,17 +106,17 @@ private:
             1
         );
         //auto r = outputTensor.front().GetTensorMutableData<float>();
-         
-        //float ampsSum = 0.0;
-        //for (size_t i = 0; i < targetAmps.size(); i++)
-        //{
-        //    //amps[i] = r[i];
-        //    ampsSum += targetAmps[i];
-        //}
-        //for (size_t i = 0; i < targetAmps.size(); i++)
-        //{
-        //    targetAmps[i] /= ampsSum;
-        //}
+       
+        float ampsSum = 0.0;
+        for (size_t i = 0; i < targetAmps.size(); i++)
+        {
+            //amps[i] = r[i];
+            ampsSum += targetAmps[i];
+        }
+        for (size_t i = 0; i < targetAmps.size(); i++)
+        {
+            targetAmps[i] /= ampsSum;
+        }
         return;
     };
 
