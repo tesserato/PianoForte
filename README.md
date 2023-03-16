@@ -47,7 +47,7 @@ More details [here](https://github.com/microsoft/onnxruntime/issues/8555)
   - **Author:** Alexander Holm
 
 # Other tools used:
-
+- [JUCE](https://juce.com/)
 - [Blender](https://www.blender.org/) and [Inkscape](https://inkscape.org/) for GUI elements
 - [Python](https://www.python.org/), with [Pytorch](https://pytorch.org/) and [ONNX Runtime](https://onnxruntime.ai/) for NN design, training and implementation.
 - [Audacity](https://www.audacityteam.org/) for audio pre processing
