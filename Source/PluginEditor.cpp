@@ -112,7 +112,8 @@ void PluginAudioProcessorEditor::resized()
         .withMaxHeight(height)
     );
     col01.performLayout(getLocalBounds().toFloat());
-    keyboard.setKeyWidth(keyboard.getWidth() / 36.0);
+    keyboard.setKeyWidth(keyboard.getWidth() / 55);
+    keyboard.setLowestVisibleKey(18);
 }
 
 void PluginAudioProcessorEditor::setMidiInput(int index) {

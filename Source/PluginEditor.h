@@ -224,6 +224,7 @@ public:
         sustainButton.setImages(&sustainOff, &sustainOffOver, nullptr , nullptr ,&sustainOn, &sustainOnOver);
         addAndMakeVisible(sustainButton);
         addAndMakeVisible(keyboard);
+        keyboard.setLowestVisibleKey(18);
         setSize(1200, 400);
         setResizable(true, true);
     }
