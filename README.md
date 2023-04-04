@@ -51,3 +51,15 @@ More details [here](https://github.com/microsoft/onnxruntime/issues/8555)
 - [Blender](https://www.blender.org/) and [Inkscape](https://inkscape.org/) for GUI elements
 - [Python](https://www.python.org/), with [Pytorch](https://pytorch.org/) and [ONNX Runtime](https://onnxruntime.ai/) for NN design, training and implementation.
 - [Audacity](https://www.audacityteam.org/) for audio pre processing
+
+
+# Contribute
+
+## Donations
+
+
+### [Buy me a coffee](https://www.buymeacoffee.com/tesserato)
+
+<img src="./images/bmc_qr.png" alt="Buy me a coffee" width="200"/>
+
+### [Patreon.com/omnessonos](https://www.patreon.com/omnessonos)
