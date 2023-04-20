@@ -3,9 +3,7 @@
 #include <random>
 #include <typeinfo>
 #define DECAY
-static std::random_device rd;  //Will be used to obtain a seed for the random number engine
-static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-static std::uniform_int_distribution<> distrib(0, 1000);
+
 
 float frequencyFromMidiKey(float k) {
     return 440.0 * std::powf(2.0, (k - 69.0) / 12.0);
@@ -82,19 +80,21 @@ void pianoVoice::getNextSample() {
     }    
     for (size_t i = 0; i < currentAmps.size(); i++)
     {
-        currentAmps[i] += (targetAmps[i] - currentAmps[i]) * 100.0 / MI.sampleRate;
+        currentAmps[i] += (targetAmps[i] - currentAmps[i]) * 1000.0 / MI.sampleRate;
     }
+
     W[0] = 0.0;
     W[1] = 0.0;
+    float currentAttack = 1.0f; // std::min(1.0f, xFloat / (0.05f * MI.sampleRate));
+    float currentDecay = std::expf(-0.005f * currentPeriod);
+    float m = std::min(1.0f, level * currentAttack * currentDecay);
     for (size_t i = 0; i < currentAmps.size(); i++)
     {
+
         float stepLocal = float(i + 1) * step;
         W[0] += currentAmps[i] * std::sin(phasesC1[i] + stepLocal);
         W[1] += currentAmps[i] * std::sin(phasesC2[i] + stepLocal);
     }
-    float currentAttack = std::min(1.0f, xFloat / (0.05f * MI.sampleRate));
-    float currentDecay = std::expf(-0.007f * currentPeriod);
-    float m = std::min(1.0f, level * currentAttack * currentDecay);
     W[0] *= m;
     W[1] *= m;
     x++;

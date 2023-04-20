@@ -7,6 +7,10 @@
 //#include <onnxruntime_cxx_api.h>
 #include "core/session/onnxruntime_cxx_api.h"
 
+static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+static std::uniform_int_distribution<> distrib(0, 1000);
+
 
 const static float MAX_NUMBER_OF_PERIODS = 4511.0;
 const static int POLYPHONY = 20; /*number of notes allowed simultaniously*/
@@ -105,12 +109,11 @@ private:
             outputTensor.data(),
             1
         );
-        //auto r = outputTensor.front().GetTensorMutableData<float>();
-       
+
         float ampsSum = 0.0;
         for (size_t i = 0; i < targetAmps.size(); i++)
         {
-            //amps[i] = r[i];
+            //targetAmps[i] += targetAmps[i] * float(distrib(gen)) / 1000.0;
             ampsSum += targetAmps[i];
         }
         for (size_t i = 0; i < targetAmps.size(); i++)

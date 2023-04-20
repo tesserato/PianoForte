@@ -225,7 +225,7 @@ public:
         addAndMakeVisible(sustainButton);
         addAndMakeVisible(keyboard);
         keyboard.setLowestVisibleKey(18);
-        setSize(1200, 400);
+        setSize(1200, 300);
         setResizable(true, true);
     }
     ~PluginAudioProcessorEditor() override;

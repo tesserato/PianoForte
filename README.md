@@ -2,10 +2,10 @@
 
 ### Author: [Carlos Tarjano](https://carlos-tarjano.web.app/)
 
-Piano synthesiser based on a lightweight (~600KB, ~150k parameters) neural network and a novel representation for Quasi-Periodic signals.
+Piano synthesizer based on micro (~8KB, ~1500 parameters) neural networks and a novel representation for Quasi-Periodic signals.
 
 Visit [OmnesSonos.web.app](https://omnessonos.web.app/)
-for further info about the algorithm and applications to voice and other instruments.
+for further info about the algorithm and intended applications to voice and other instruments.
 
 # Download
 
@@ -51,15 +51,3 @@ More details [here](https://github.com/microsoft/onnxruntime/issues/8555)
 - [Blender](https://www.blender.org/) and [Inkscape](https://inkscape.org/) for GUI elements
 - [Python](https://www.python.org/), with [Pytorch](https://pytorch.org/) and [ONNX Runtime](https://onnxruntime.ai/) for NN design, training and implementation.
 - [Audacity](https://www.audacityteam.org/) for audio pre processing
-
-
-# Contribute
-
-## Donations
-
-
-### [Buy me a coffee](https://www.buymeacoffee.com/tesserato)
-
-<img src="./images/bmc_qr.png" alt="Buy me a coffee" width="200"/>
-
-### [Patreon.com/omnessonos](https://www.patreon.com/omnessonos)
