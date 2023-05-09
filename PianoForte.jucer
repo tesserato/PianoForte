@@ -9,7 +9,8 @@
               pluginName="PianoForte" version="0.0.0" pluginManufacturerCode="Omsn"
               pluginVST3Category="Instrument">
   <MAINGROUP id="NPheXK" name="PianoForte">
-    <FILE id="Q7SQjz" name="engine" compile="0" resource="1" file="Resources/engine"/>
+    <FILE id="xteGUp" name="engineMain" compile="0" resource="1" file="Resources/engineMain"/>
+    <FILE id="TQVeLw" name="engineDW" compile="0" resource="1" file="Resources/engineDW"/>
     <FILE id="jNGFyg" name="icon.png" compile="0" resource="1" file="Resources/icon.png"/>
     <GROUP id="{B108AF41-7B19-47C9-89CE-DB9D3B9027A9}" name="frames">
       <FILE id="e1DoHm" name="frame0001.jpg" compile="0" resource="1" file="Resources/frames/frame0001.jpg"/>

@@ -20,19 +20,16 @@ template <typename T> float sign(T val)
     return (T(0) < val) - (val < T(0));
 }
 
- class ModelInfo
+
+
+ class NeuralModel
  {  
  public:
-     Ort::Session session = Ort::Session{ nullptr };
-     std::vector<int64_t> inputShape = { 0 }, outputShape = { 0 };
      float sampleRate = 44100.0;
-     static ModelInfo& instance()
-     {
-         static ModelInfo INSTANCE;
-         return INSTANCE;
-     }
- private:
-     ModelInfo()
+     std::vector<int64_t> inputShape = { 0 }, outputShape = { 0 };
+     Ort::Session session = Ort::Session{ nullptr };
+
+     NeuralModel(const char* name = "engineMain")
      {
         //juce::Logger::setCurrentLogger(juce::FileLogger::createDefaultAppLogger("PFplugin", "PFplugin.txt", "######"));
         juce::Logger::writeToLog("ModelInfo constructor, Current dir: " + juce::File::getCurrentWorkingDirectory().getFullPathName());
@@ -48,7 +45,7 @@ template <typename T> float sign(T val)
         //session = Ort::Session(env, model_file.c_str(), session_options);
         /// Load from memory
         int dataSizeInBytes;
-        const void* data = BinaryData::getNamedResource("engine", dataSizeInBytes);
+        const void* data = BinaryData::getNamedResource(name, dataSizeInBytes);
         if (data) {
             session = Ort::Session(env, data, dataSizeInBytes, session_options);
         }
@@ -79,7 +76,7 @@ struct pianoSound : public juce::SynthesiserSound
 struct pianoVoice : public juce::SynthesiserVoice
 {
 private:
-    ModelInfo& MI = ModelInfo::instance();
+    NeuralModel MI = NeuralModel(); // = ModelInfo::instance();
     std::future<void> fut;
     std::vector<float> targetAmps = std::vector<float>(MI.outputShape[0], 0);
     std::vector<float> currentAmps = std::vector<float>(MI.outputShape[0], 0);
@@ -90,6 +87,7 @@ private:
     long x = 0;
     bool  isPlaying = false;
     float  level = 0.0f, midiKey = 0.0f;
+
     std::function<void()> forward = [&] {
         std::vector<Ort::Value> inputTensor;
         std::vector<Ort::Value> outputTensor;
@@ -126,7 +124,10 @@ private:
 public:
     double lastActive = juce::Time::getMillisecondCounterHiRes();
     float tailOff = 0.0;
-    pianoVoice() { MI.sampleRate = getSampleRate(); };
+    pianoVoice() { 
+        //MI = NeuralModel();
+        MI.sampleRate = getSampleRate(); 
+    };
 
     bool canPlaySound(juce::SynthesiserSound* sound) override
     {

@@ -59,7 +59,6 @@ struct SynthAudioSource : public juce::AudioSource
     }
 };
 
-
 class PluginAudioProcessor :
     public juce::AudioProcessor,
     public juce::Slider::Listener,

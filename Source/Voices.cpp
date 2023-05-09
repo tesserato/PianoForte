@@ -24,7 +24,7 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
         phasesC1[i] = juce::MathConstants<float>::twoPi * float(distrib(gen)) / 1000.0;
         phasesC2[i] = juce::MathConstants<float>::twoPi * float(distrib(gen)) / 1000.0;
     }
-    float pitch = (midiKey - 1.0) / 107.0;
+    float pitch = (midiKey - 21.0) / 87.0;
 
     I0 = { pitch,  level, 0.0 };
     fut = std::async(std::launch::async, forward);
@@ -65,7 +65,7 @@ void pianoVoice::getNextSample() {
     if (true && fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
     {
         float pc = std::tanh(currentPeriod / MAX_NUMBER_OF_PERIODS);
-        float pitch = (midiKey - 1.0) / 107.0;
+        float pitch = (midiKey - 21.0) / 87.0;
         I0 = { pitch,  level, pc };
         fut = std::async(std::launch::async, forward);
 
@@ -85,7 +85,7 @@ void pianoVoice::getNextSample() {
 
     W[0] = 0.0;
     W[1] = 0.0;
-    float currentAttack = 1.0f; // std::min(1.0f, xFloat / (0.05f * MI.sampleRate));
+    float currentAttack = std::min(1.0f, xFloat / (0.05f * MI.sampleRate));
     float currentDecay = std::expf(-0.005f * currentPeriod);
     float m = std::min(1.0f, level * currentAttack * currentDecay);
     for (size_t i = 0; i < currentAmps.size(); i++)
