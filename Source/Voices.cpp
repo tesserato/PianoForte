@@ -56,11 +56,11 @@ void pianoVoice::pitchWheelMoved(int newValue){}
 void pianoVoice::controllerMoved(int controllerNumber, int newValue)  {}
 
 void pianoVoice::getNextSample() {
-    DBG("FPS=" << MI.sampleRate);
+    DBG("FPS=" << MI->sampleRate);
     float xFloat = float(x);
     float f = frequencyFromMidiKey(midiKey);
-    float step = juce::MathConstants<float>::twoPi * xFloat * f / MI.sampleRate;
-    float period = MI.sampleRate / f;
+    float step = juce::MathConstants<float>::twoPi * xFloat * f / MI->sampleRate;
+    float period = MI->sampleRate / f;
     float currentPeriod = xFloat / period;
     if (true && fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
     {
@@ -73,19 +73,19 @@ void pianoVoice::getNextSample() {
         DBG("currentPeriod=" + std::to_string(currentPeriod) +
             " period=" + std::to_string(period) +
             " key=" + std::to_string(midiKey) +
-            " sampleRate(hz)=" + std::to_string(MI.sampleRate) +
+            " sampleRate(hz)=" + std::to_string(MI->sampleRate) +
             " level=" + std::to_string(level) +
             " pitch=" + std::to_string(pitch) +
             " pc=" + std::to_string(pc) + "\n");
     }    
     for (size_t i = 0; i < currentAmps.size(); i++)
     {
-        currentAmps[i] += (targetAmps[i] - currentAmps[i]) * 1000.0 / MI.sampleRate;
+        currentAmps[i] += (targetAmps[i] - currentAmps[i]) * 1000.0 / MI->sampleRate;
     }
 
     W[0] = 0.0;
     W[1] = 0.0;
-    float currentAttack = std::min(1.0f, xFloat / (0.05f * MI.sampleRate));
+    float currentAttack = std::min(1.0f, xFloat / (0.05f * MI->sampleRate));
     float currentDecay = std::expf(-0.005f * currentPeriod);
     float m = std::min(1.0f, level * currentAttack * currentDecay);
     for (size_t i = 0; i < currentAmps.size(); i++)
