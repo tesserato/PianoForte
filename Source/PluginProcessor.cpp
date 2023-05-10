@@ -5,7 +5,7 @@
 
 SynthAudioSource::SynthAudioSource(juce::MidiKeyboardState& keyState,  juce::AudioProcessorValueTreeState* parameters) : keyboardState(keyState)
 {
-    auto MI =  NeuralModel(); // = ModelInfo::instance();
+    // = ModelInfo::instance();
 
 
     for (auto i = 0; i < POLYPHONY; i++) // number of keys that can be played at the same time

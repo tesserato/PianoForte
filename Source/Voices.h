@@ -82,6 +82,12 @@ public:
     pianoVoice(NeuralModel* _MI) {
         MI = _MI;
         MI->sampleRate = getSampleRate();
+        targetAmps = std::vector<float>(MI->outputShape[0], 0);
+        currentAmps = std::vector<float>(MI->outputShape[0], 0);
+        phasesC1 = std::vector<float>(MI->outputShape[0], 0);
+        phasesC2 = std::vector<float>(MI->outputShape[0], 0);
+        I0 = std::vector<float>(MI->inputShape[0], 0);
+
     };
 
     bool canPlaySound(juce::SynthesiserSound* sound) override
@@ -107,11 +113,11 @@ public:
 
 private:
     std::future<void> fut;
-    std::vector<float> targetAmps = std::vector<float>(MI->outputShape[0], 0);
-    std::vector<float> currentAmps = std::vector<float>(MI->outputShape[0], 0);
-    std::vector<float> phasesC1 = std::vector<float>(MI->outputShape[0], 0);
-    std::vector<float> phasesC2 = std::vector<float>(MI->outputShape[0], 0);
-    std::vector<float> I0 = std::vector<float>(MI->inputShape[0], 0);
+    std::vector<float> targetAmps;// = std::vector<float>(MI->outputShape[0], 0);
+    std::vector<float> currentAmps;// = std::vector<float>(MI->outputShape[0], 0);
+    std::vector<float> phasesC1;// = std::vector<float>(MI->outputShape[0], 0);
+    std::vector<float> phasesC2;// = std::vector<float>(MI->outputShape[0], 0);
+    std::vector<float> I0;// = std::vector<float>(MI->inputShape[0], 0);
     std::vector<float> W = std::vector<float>(2, 0);
     long x = 0;
     bool  isPlaying = false;

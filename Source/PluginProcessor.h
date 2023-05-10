@@ -27,6 +27,7 @@ struct SynthAudioSource : public juce::AudioSource
     juce::MidiKeyboardState& keyboardState;
     customSynth synth;
     juce::MidiMessageCollector midiCollector;
+    NeuralModel MI = NeuralModel();
 
     SynthAudioSource(juce::MidiKeyboardState& keyState, juce::AudioProcessorValueTreeState* parameters);
 

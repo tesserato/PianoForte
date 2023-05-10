@@ -24,12 +24,13 @@ for further info about the algorithm and intended applications to voice and othe
 <!-- ` .\build.bat --config Release` -->
 `.\build.bat --config Release --enable_msvc_static_runtime --disable_memleak_checker --skip_tests --build_shared_lib` --build 
 
-Then
-`.\build\Windows\Release> cmake.exe --build .`
+<!-- Then -->
+<!-- `.\build\Windows\Release> cmake.exe --build .` -->
 
 And add path in Projucer
 
 More details [here](https://github.com/microsoft/onnxruntime/issues/8555)
+
 
 ## remove all `CMakeCache.txt` if you see any cache related errors
 
