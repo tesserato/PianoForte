@@ -31,7 +31,7 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
     // 0.99 -> 0.60
     // 0.99 - 0.60
     auto sustain = 0.95 - pitch * 0.25;
-    dw.start(pitch, 7, sustain);
+    dw.start(pitch, 11, sustain);
 
     while (isForwarding/*fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready*/)
     {

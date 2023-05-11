@@ -16,10 +16,10 @@ static std::uniform_int_distribution<> distrib(0, 1000);
 const static float MAX_NUMBER_OF_PERIODS = 4511.0;
 const static int POLYPHONY = 20; /*number of notes allowed simultaniously*/
 
-//template <typename T> float sign(T val) 
-//{
-//    return (T(0) < val) - (val < T(0));
-//}
+template <typename T> float sign(T val) 
+{
+    return (T(0) < val) - (val < T(0));
+}
 
 template <typename T>
 inline std::vector<T> complexToHalfComplex(std::vector<std::complex<T>> C)
@@ -230,8 +230,8 @@ inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
          for (size_t i = pr; i < pr + smoothing; i++)
          {
              auto idx = i % delayL.size();
-             wAvgL += std::abs(delayL[idx]);
-             wAvgR += std::abs(delayR[idx]);
+             wAvgL += delayL[idx];
+             wAvgR += delayR[idx];
          }
          wAvgL /= float(smoothing);
          wAvgR /= float(smoothing);
