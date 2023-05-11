@@ -1,7 +1,7 @@
 #pragma once
-#include "PluginProcessor.h"
+//#include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include "Voices.h"
+//#include "Voices.h"
 
 
 

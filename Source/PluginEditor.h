@@ -1,5 +1,5 @@
 #pragma once
-#include <JuceHeader.h>
+//#include <JuceHeader.h>
 #include "PluginProcessor.h"
 
 const juce::String websiteAddress = "https://github.com/tesserato/PianoForte";
@@ -101,7 +101,7 @@ public:
     juce::DrawableButton button{ "logo", juce::DrawableButton::ButtonStyle::ImageFitted };
 
     banner() {
-        juce::Logger::writeToLog("banner constructor");
+        DBG("banner constructor");
 
         // https://forum.juce.com/t/binary-resource-tutorial/45047/2
         // https://forum.juce.com/t/passing-binary-data-into-a-function/45108
@@ -174,7 +174,7 @@ public:
         audioProcessor(p),
         keyboard(p.keyboardState, juce::MidiKeyboardComponent::horizontalKeyboard)
     {
-        juce::Logger::writeToLog("PluginAudioProcessorEditor constructor");
+        DBG("PluginAudioProcessorEditor constructor");
         setOpaque(true);
         backgroundImg = juce::ImageCache::getFromMemory(BinaryData::background_png, BinaryData::background_pngSize);
 

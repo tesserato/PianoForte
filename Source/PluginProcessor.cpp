@@ -1,17 +1,14 @@
 #pragma once
-#include "PluginProcessor.h"
+//#include "PluginProcessor.h"
 #include "PluginEditor.h"
 
 
 SynthAudioSource::SynthAudioSource(juce::MidiKeyboardState& keyState,  juce::AudioProcessorValueTreeState* parameters) : keyboardState(keyState)
 {
-    // = ModelInfo::instance();
-
-
     for (auto i = 0; i < POLYPHONY; i++) // number of keys that can be played at the same time
     {
         //DBG("Adding voice " + std::to_string(i) + ", model = " + modelInfo->netName);
-        pianoVoice* v =  new pianoVoice(&MI);
+        pianoVoice* v =  new pianoVoice(&MI, &dwModel);
         synth.addVoice(v);
     }
     synth.clearSounds();

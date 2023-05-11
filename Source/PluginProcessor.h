@@ -1,6 +1,6 @@
 #pragma once
-#include <JuceHeader.h>
-#include <filesystem>
+//#include <JuceHeader.h>
+//#include <filesystem>
 #include "Voices.h"
 
 struct customSynth : public juce::Synthesiser{
@@ -28,6 +28,7 @@ struct SynthAudioSource : public juce::AudioSource
     customSynth synth;
     juce::MidiMessageCollector midiCollector;
     NeuralModel MI = NeuralModel();
+    NeuralModel dwModel = NeuralModel("engineDW");
 
     SynthAudioSource(juce::MidiKeyboardState& keyState, juce::AudioProcessorValueTreeState* parameters);
 

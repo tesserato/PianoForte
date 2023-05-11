@@ -18,21 +18,17 @@ for further info about the algorithm and intended applications to voice and othe
 [ONNX Runtime releases](https://github.com/microsoft/onnxruntime/releases)
 
 `git clone --depth 1 --recursive https://github.com/Microsoft/onnxruntime`
+
 `cd onnxruntime`
 
-<!-- From rep root: -->
-<!-- ` .\build.bat --config Release` -->
-`.\build.bat --config Release --enable_msvc_static_runtime --disable_memleak_checker --skip_tests --build_shared_lib` --build 
+`.\build.bat --config Release --enable_msvc_static_runtime --disable_memleak_checker --skip_tests --build_shared_lib` 
 
-<!-- Then -->
-<!-- `.\build\Windows\Release> cmake.exe --build .` -->
 
-And add path in Projucer
+And add path in Projucer as in the file "PianoForte.jucer"
 
 More details [here](https://github.com/microsoft/onnxruntime/issues/8555)
 
 
-## remove all `CMakeCache.txt` if you see any cache related errors
 
 # Raw samples used for training:
 

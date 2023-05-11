@@ -3,9 +3,9 @@
 <JUCERPROJECT id="vszyye" name="PianoForte" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
               pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn"
-              cppLanguageStandard="17" pluginFormats="buildStandalone,buildVST3"
+              cppLanguageStandard="20" pluginFormats="buildStandalone,buildVST3"
               companyName="Omnes Sonos" companyEmail="tesserato@hotmail.com"
-              companyWebsite="https://github.com/tesserato/PianoForte" headerPath="C:\Users\tesse\Desktop\Files\Reps\onnxruntime\include\onnxruntime"
+              companyWebsite="https://github.com/tesserato/PianoForte" headerPath="C:\Users\tesse\Desktop\Files\Reps\onnxruntime\include\onnxruntime&#10;C:\Users\tesse\Desktop\Files\Reps\PianoForte\include"
               pluginName="PianoForte" version="0.0.0" pluginManufacturerCode="Omsn"
               pluginVST3Category="Instrument">
   <MAINGROUP id="NPheXK" name="PianoForte">
