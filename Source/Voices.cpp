@@ -28,8 +28,10 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
 
     I0 = { pitch,  level, 0.0 };
     fut = std::async(std::launch::async, &pianoVoice::forward, this);
-
-    dw.start(pitch);
+    // 0.99 -> 0.60
+    // 0.99 - 0.60
+    auto sustain = 0.95 - pitch * 0.25;
+    dw.start(pitch, 7, sustain);
 
     while (isForwarding/*fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready*/)
     {
@@ -96,9 +98,10 @@ void pianoVoice::getNextSample() {
         W[1] += currentAmps[i] * std::sin(phasesC2[i] + stepLocal);
     }
     
-    auto w = dw.step();
-    W[0] = W[0] * 0.8 + w * 0.2;
-    W[1] = W[1] * 0.8 + w * 0.2;
+    auto WD = dw.step();
+    float alpha = 0.0;
+    W[0] = W[0] * alpha + WD[0] * (1.0 - alpha);
+    W[1] = W[1] * alpha + WD[1] * (1.0 - alpha);
 
     W[0] *= m;
     W[1] *= m;

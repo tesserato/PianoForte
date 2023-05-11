@@ -149,73 +149,99 @@ inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
      NeuralModel* model;// = NeuralModel("engineDW");
      size_t currentStep = 0;
      //size_t length = 1102;
-     size_t smoothing = 2;
-     float sustain = 0.90;
-     std::vector<float> delay;
+     size_t smoothing;
+     float sustain;
+     std::vector<float> delayL;
+     std::vector<float> delayR;
      std::vector<float> powerSpectrum;
      std::vector<float> I{ 0 };
  public:
      DigitalWaveguide(){}
      DigitalWaveguide(NeuralModel* m, const size_t delayLength = 1102) {
          model = m;
-         delay.resize(delayLength);
+         delayL.resize(delayLength);
+         delayR.resize(delayLength);
          powerSpectrum.resize(model->outputShape[0]);
      }
-     void start(float normKey) {
+     void start(float normKey, size_t _smoothing = 2, float _sustain = 0.90) {
+         sustain = _sustain;
+         smoothing = _smoothing;
          currentStep = 0;
          I[0] = normKey;
          
          model->eval(I, powerSpectrum);
          DBG("outside eval DigitalWaveguide");
          
-         std::vector<std::complex<float>> freqs(powerSpectrum.size());
-         for (size_t i = 0; i < freqs.size(); i++)
+         std::vector<std::complex<float>> freqsL(powerSpectrum.size());
+         std::vector<std::complex<float>> freqsR(powerSpectrum.size());
+         for (size_t i = 0; i < freqsL.size(); i++)
          {
-             float randomPhase = juce::MathConstants<float>::twoPi * float(distrib(gen)) / 1000.0;
-             freqs[i] = { powerSpectrum[i] * std::sin(randomPhase), powerSpectrum[i] * std::cos(randomPhase) };
+             float randomPhaseL = juce::MathConstants<float>::twoPi * float(distrib(gen)) / 1000.0;
+             freqsL[i] = { powerSpectrum[i] * std::sin(randomPhaseL), powerSpectrum[i] * std::cos(randomPhaseL) };
+
+             float randomPhaseR = juce::MathConstants<float>::twoPi * float(distrib(gen)) / 1000.0;
+             freqsR[i] = { powerSpectrum[i] * std::sin(randomPhaseR), powerSpectrum[i] * std::cos(randomPhaseR) };
+
          }
-         delay = irfft(freqs);
-         auto n = delay.size() / 10;
+         delayL = irfft(freqsL);
+         delayR = irfft(freqsR);
+         auto n = delayL.size() / 10;
          for (size_t i = 0; i < n; i++)
          {
              float m = float(i) / float(n - 1);
-             delay[i] *= m;
-             delay[n - i - 1] *= m;
+             delayL[i] *= m;
+             delayL[n - i - 1] *= m;
+             delayR[i] *= m;
+             delayR[n - i - 1] *= m;
          }
-         float maxDelayAmp = 0.0;
-         for (size_t i = 0; i < delay.size(); i++)
+         float maxDelayAmpL = 0.0;
+         float maxDelayAmpR = 0.0;
+         for (size_t i = 0; i < delayL.size(); i++)
          {
-             float currDelayAmp = std::abs(delay[i]);
-             if (currDelayAmp > maxDelayAmp)
+             float currDelayAmpL = std::abs(delayL[i]);
+             if (currDelayAmpL > maxDelayAmpL)
              {
-                 maxDelayAmp = currDelayAmp;
+                 maxDelayAmpL = currDelayAmpL;
+             }
+             float currDelayAmpR = std::abs(delayR[i]);
+             if (currDelayAmpR > maxDelayAmpR)
+             {
+                 maxDelayAmpR = currDelayAmpR;
              }
          }
-         for (size_t i = 0; i < delay.size(); i++) {
-             delay[i] /= maxDelayAmp;
+         for (size_t i = 0; i < delayL.size(); i++) {
+             delayL[i] /= 2.0 * maxDelayAmpL;
+             delayR[i] /= 2.0 * maxDelayAmpR;
          }
-         auto l = delay.size();
-         delay.resize(2 * l, 0);
+         auto l = delayL.size();
+         delayL.resize(2 * l, 0);
+         delayR.resize(2 * l, 0);
          DBG("end of start DigitalWaveguide");
          return;
      }
-     float step() {
+     std::vector<float> step() {
          DBG("step start");
-         size_t pr = currentStep % delay.size();
-         size_t pl = (currentStep + delay.size() / 2) % delay.size();
-         float w = (delay[pr] + delay[pl]) / 2.0;
-         float avgW = 0.0;
+         size_t pr = currentStep % delayL.size();
+         size_t pl = (currentStep + delayL.size() / 2) % delayL.size();
+         float wL = (delayL[pr] + delayL[pl])/* / 2.0*/;
+         float wR = (delayR[pr] + delayR[pl])/* / 2.0*/;
+         float wAvgL = 0.0;
+         float wAvgR = 0.0;
          for (size_t i = pr; i < pr + smoothing; i++)
          {
-             auto idx = i % delay.size();
-             avgW += std::abs(delay[idx]);
+             auto idx = i % delayL.size();
+             wAvgL += std::abs(delayL[idx]);
+             wAvgR += std::abs(delayR[idx]);
          }
-         avgW /= float(smoothing);
-         delay[pr] = -1 * avgW * sustain;
-         delay[pl] *= -1;
+         wAvgL /= float(smoothing);
+         wAvgR /= float(smoothing);
+         delayL[pr] = -1 * wAvgL * sustain;
+         delayL[pl] *= -1;
+         delayR[pr] = -1 * wAvgR * sustain;
+         delayR[pl] *= -1;
          currentStep++;
          DBG("step end");
-         return w;
+         return { wL, wR };
      }
  };
 
