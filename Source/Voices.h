@@ -8,9 +8,12 @@
 #include "core/session/onnxruntime_cxx_api.h"
 #include "pocketfft_hdronly.h"
 
-static std::random_device rd;  //Will be used to obtain a seed for the random number engine
-static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-static std::uniform_int_distribution<> distrib(0, 1000);
+//static std::random_device rd;  //Will be used to obtain a seed for the random number engine
+//static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+//static std::uniform_int_distribution<> distrib(0, 1000);
+
+static std::default_random_engine generator;
+static std::normal_distribution<double> NORMAL(juce::MathConstants<float>::pi, 2.0);
 
 
 const static float MAX_NUMBER_OF_PERIODS = 4511.0;
@@ -54,7 +57,7 @@ inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
 }
 
 
- class NeuralModel
+class NeuralModel
  {  
  public:
      float sampleRate = 44100.0;
@@ -143,7 +146,7 @@ inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
      }
  };
 
- class DigitalWaveguide
+class DigitalWaveguide
  {
  private:
      NeuralModel* model;// = NeuralModel("engineDW");
@@ -163,7 +166,7 @@ inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
          delayR.resize(delayLength);
          powerSpectrum.resize(model->outputShape[0]);
      }
-     void start(float normKey, size_t _smoothing = 2, float _sustain = 0.90) {
+     void start(const float normKey, const size_t _smoothing = 2, const float _sustain = 0.90, const size_t delayLength = 1102) {
          sustain = _sustain;
          smoothing = _smoothing;
          currentStep = 0;
@@ -171,17 +174,35 @@ inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
          
          model->eval(I, powerSpectrum);
          DBG("outside eval DigitalWaveguide");
+
+         size_t delayLengthFD = delayLength / 2 + 1;
+
+
+         std::vector<float> newPowerSpectrum;
+         if (delayLengthFD != powerSpectrum.size())
+         {
+             newPowerSpectrum.resize(delayLengthFD, 0.0);
+             size_t n = powerSpectrum.size();
+             for (size_t i = 0; i < n; i++)
+             {
+                 int idx = int(std::round(float(i * (delayLengthFD - 1)) / float(n - 1)));
+                 newPowerSpectrum[idx] += powerSpectrum[i];
+             }
+         }
+         else
+         {
+             newPowerSpectrum = powerSpectrum;
+         }
          
-         std::vector<std::complex<float>> freqsL(powerSpectrum.size());
-         std::vector<std::complex<float>> freqsR(powerSpectrum.size());
+         std::vector<std::complex<float>> freqsL(newPowerSpectrum.size());
+         std::vector<std::complex<float>> freqsR(newPowerSpectrum.size());
          for (size_t i = 0; i < freqsL.size(); i++)
          {
-             float randomPhaseL = juce::MathConstants<float>::twoPi * float(distrib(gen)) / 1000.0;
-             freqsL[i] = { powerSpectrum[i] * std::sin(randomPhaseL), powerSpectrum[i] * std::cos(randomPhaseL) };
+             float randomPhaseL = NORMAL(generator);
+             freqsL[i] = { newPowerSpectrum[i] * std::sin(randomPhaseL), newPowerSpectrum[i] * std::cos(randomPhaseL) };
 
-             float randomPhaseR = juce::MathConstants<float>::twoPi * float(distrib(gen)) / 1000.0;
-             freqsR[i] = { powerSpectrum[i] * std::sin(randomPhaseR), powerSpectrum[i] * std::cos(randomPhaseR) };
-
+             float randomPhaseR = NORMAL(generator);
+             freqsR[i] = { newPowerSpectrum[i] * std::sin(randomPhaseR), newPowerSpectrum[i] * std::cos(randomPhaseR) };
          }
          delayL = irfft(freqsL);
          delayR = irfft(freqsR);
@@ -214,8 +235,8 @@ inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
              delayR[i] /= 2.0 * maxDelayAmpR;
          }
          auto l = delayL.size();
-         delayL.resize(2 * l, 0);
-         delayR.resize(2 * l, 0);
+         delayL.resize(2 * l, 0.0);
+         delayR.resize(2 * l, 0.0);
          DBG("end of start DigitalWaveguide");
          return;
      }
@@ -245,7 +266,6 @@ inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
      }
  };
 
-
 struct pianoSound : public juce::SynthesiserSound
 {
     pianoSound() {}
@@ -266,6 +286,7 @@ public:
     NeuralModel* MI;// = NeuralModel(); // = ModelInfo::instance();
     double lastActive = juce::Time::getMillisecondCounterHiRes();
     float tailOff = 0.0;
+    float fps = getSampleRate();
     pianoVoice(NeuralModel* _MI, NeuralModel* dwModel) {
         dw = DigitalWaveguide(dwModel);
         MI = _MI;

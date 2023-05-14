@@ -10,8 +10,6 @@ float frequencyFromMidiKey(float k) {
 }
 
 
-
-
 void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* /*synthesiserSound*/, int /*currentPitchWheelValue*/)
 {    
     lastActive = juce::Time::getMillisecondCounterHiRes();
@@ -21,8 +19,8 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
     midiKey = midiNoteNumber;
     for (size_t i = 0; i < phasesC1.size(); i++)
     {
-        phasesC1[i] = juce::MathConstants<float>::twoPi * float(distrib(gen)) / 1000.0;
-        phasesC2[i] = juce::MathConstants<float>::twoPi * float(distrib(gen)) / 1000.0;
+        phasesC1[i] = NORMAL(generator);
+        phasesC2[i] = NORMAL(generator);
     }
     float pitch = (midiKey - 21.0) / 87.0;
 
@@ -30,8 +28,12 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
     fut = std::async(std::launch::async, &pianoVoice::forward, this);
     // 0.99 -> 0.60
     // 0.99 - 0.60
-    auto sustain = 0.95 - pitch * 0.25;
-    dw.start(pitch, 11, sustain);
+    //auto sustain = 0.99 - pitch * 0.25;
+    auto sustain = 0.99;
+    float f = frequencyFromMidiKey(midiKey);
+    int delayLength = std::max(int(std::round(fps / f)), 50);
+    DBG("Frequency=" + std::to_string(f) + ", delay= " + std::to_string(delayLength));
+    dw.start(pitch, 11, sustain, delayLength);
 
     while (isForwarding/*fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready*/)
     {
@@ -87,7 +89,8 @@ void pianoVoice::getNextSample() {
     }
 
 
-    float currentAttack = std::min(1.0f, xFloat / (0.05f * MI->sampleRate));
+    //float currentAttack = std::min(1.0f, xFloat * xFloat / (0.01f * MI->sampleRate));
+    float currentAttack = std::min(1.0f, xFloat / (0.01f * MI->sampleRate));
     float currentDecay = std::expf(-0.005f * currentPeriod);
     float m = std::min(1.0f, level * currentAttack * currentDecay);
     for (size_t i = 0; i < currentAmps.size(); i++)
@@ -99,7 +102,7 @@ void pianoVoice::getNextSample() {
     }
     
     auto WD = dw.step();
-    float alpha = 0.0;
+    float alpha = 0.75;
     W[0] = W[0] * alpha + WD[0] * (1.0 - alpha);
     W[1] = W[1] * alpha + WD[1] * (1.0 - alpha);
 

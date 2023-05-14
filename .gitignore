@@ -4,3 +4,4 @@ JuceLibraryCode
 Releases/Shared Code
 Releases/VST3/PianoForte.exp
 Releases/VST3/PianoForte.lib
+addGitHubTokenToEnv.ps1
