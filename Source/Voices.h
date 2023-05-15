@@ -247,8 +247,7 @@ class DigitalWaveguide
          DBG("step start");
          size_t pr = currentStep % delayL.size();
          size_t pl = (currentStep + delayL.size() / 2) % delayL.size();
-         float wL = (delayL[pr] + delayL[pl])/* / 2.0*/;
-         float wR = (delayR[pr] + delayR[pl])/* / 2.0*/;
+
          float wAvgL = 0.0;
          float wAvgR = 0.0;
          for (size_t i = pr; i < pr + smoothing; i++)
@@ -265,6 +264,8 @@ class DigitalWaveguide
          delayR[pl] *= -1;
          currentStep++;
          DBG("step end");
+         float wL = (delayL[pr] + delayL[pl])/* / 2.0*/;
+         float wR = (delayR[pr] + delayR[pl])/* / 2.0*/;
          return { wL, wR };
      }
  };
