@@ -13,7 +13,7 @@
 //static std::uniform_int_distribution<> distrib(0, 1000);
 
 static std::default_random_engine generator;
-static std::normal_distribution<double> NORMAL(juce::MathConstants<float>::pi, 2.0);
+static std::normal_distribution<double> NORMAL(0, 2.3);
 
 
 const static float MAX_NUMBER_OF_PERIODS = 4511.0;
@@ -196,12 +196,15 @@ class DigitalWaveguide
          
          std::vector<std::complex<float>> freqsL(newPowerSpectrum.size());
          std::vector<std::complex<float>> freqsR(newPowerSpectrum.size());
+
+         float randomPhaseL = NORMAL(generator);
+         float randomPhaseR = NORMAL(generator);
          for (size_t i = 0; i < freqsL.size(); i++)
          {
-             float randomPhaseL = NORMAL(generator);
+             randomPhaseL += NORMAL(generator);
              freqsL[i] = { newPowerSpectrum[i] * std::sin(randomPhaseL), newPowerSpectrum[i] * std::cos(randomPhaseL) };
 
-             float randomPhaseR = NORMAL(generator);
+             randomPhaseR += NORMAL(generator);
              freqsR[i] = { newPowerSpectrum[i] * std::sin(randomPhaseR), newPowerSpectrum[i] * std::cos(randomPhaseR) };
          }
          delayL = irfft(freqsL);
@@ -329,12 +332,11 @@ private:
     std::vector<float> W = std::vector<float>(2, 0);
 
     long x = 0;
-    bool  isPlaying = false, isForwarding= false;
+    bool  isPlaying = false;
     float  level = 0.0f, midiKey = 0.0f;
 
     void forward() {
         DBG("forward started");
-        isForwarding = true;
         MI->eval(I0, targetAmps);
         //std::vector<Ort::Value> inputTensor;
         //std::vector<Ort::Value> outputTensor;
@@ -365,7 +367,6 @@ private:
         {
             targetAmps[i] /= ampsSum;
         }
-        isForwarding = false;
         DBG("forward ended");
         return;
     };
