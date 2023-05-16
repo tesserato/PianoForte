@@ -102,11 +102,11 @@ void pianoVoice::getNextSample() {
     
     auto WD = dw.step();
     float alpha = 0.72;
-    W[0] = W[0] * alpha + WD[0] * (1.0 - alpha);
-    W[1] = W[1] * alpha + WD[1] * (1.0 - alpha);
+    W[0] = W[0] * alpha * m + WD[0] * (1.0 - alpha);
+    W[1] = W[1] * alpha * m+ WD[1] * (1.0 - alpha);
 
-    W[0] *= m;
-    W[1] *= m;
+    //W[0] *= m;
+    //W[1] *= m;
     x++;
     return;
 }
