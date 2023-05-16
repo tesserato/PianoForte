@@ -167,6 +167,9 @@ class DigitalWaveguide
          powerSpectrum.resize(model->outputShape[0]);
      }
      void start(const float normKey, const size_t _smoothing = 2, const float _sustain = 0.90, const size_t delayLength = 1102) {
+         //const int reps = 3;
+         //delayLength *= 3;
+
          sustain = _sustain;
          smoothing = _smoothing;
          currentStep = 0;
@@ -209,15 +212,17 @@ class DigitalWaveguide
          }
          delayL = irfft(freqsL);
          delayR = irfft(freqsR);
-         auto n = delayL.size() / 10;
-         for (size_t i = 0; i < n; i++)
-         {
-             float m = float(i) / float(n - 1);
-             delayL[i] *= m;
-             delayL[n - i - 1] *= m;
-             delayR[i] *= m;
-             delayR[n - i - 1] *= m;
-         }
+
+         //auto n = delayL.size() / 10;
+         //for (size_t i = 0; i < n; i++)
+         //{
+         //    float m = float(i) / float(n - 1);
+         //    delayL[i] *= m;
+         //    delayL[n - i - 1] *= m;
+         //    delayR[i] *= m;
+         //    delayR[n - i - 1] *= m;
+         //}
+
          float maxDelayAmpL = 0.0;
          float maxDelayAmpR = 0.0;
          for (size_t i = 0; i < delayL.size(); i++)
@@ -233,9 +238,14 @@ class DigitalWaveguide
                  maxDelayAmpR = currDelayAmpR;
              }
          }
+
+         float delta = juce::MathConstants<float>::pi / float(delayL.size() - 1);
          for (size_t i = 0; i < delayL.size(); i++) {
-             delayL[i] /= 2.0 * maxDelayAmpL;
-             delayR[i] /= 2.0 * maxDelayAmpR;
+             float e = std::sin(float(i) * delta) * 0.5;
+             delayL[i] /=  maxDelayAmpL;
+             delayR[i] /= maxDelayAmpR;
+             delayL[i] *= e;
+             delayR[i] *= e;
          }
          auto l = delayL.size();
          delayL.resize(2 * l, 0.0);
@@ -247,6 +257,9 @@ class DigitalWaveguide
          DBG("step start");
          size_t pr = currentStep % delayL.size();
          size_t pl = (currentStep + delayL.size() / 2) % delayL.size();
+
+         float wL = (delayL[pr] + delayL[pl])/* / 2.0*/;
+         float wR = (delayR[pr] + delayR[pl])/* / 2.0*/;
 
          float wAvgL = 0.0;
          float wAvgR = 0.0;
@@ -264,8 +277,6 @@ class DigitalWaveguide
          delayR[pl] *= -1;
          currentStep++;
          DBG("step end");
-         float wL = (delayL[pr] + delayL[pl])/* / 2.0*/;
-         float wR = (delayR[pr] + delayR[pl])/* / 2.0*/;
          return { wL, wR };
      }
  };
