@@ -5,6 +5,7 @@
 #include <random>
 #include <functional> /*lambda functions*/
 //#include <complex>
+#include <cmath>
 #include "core/session/onnxruntime_cxx_api.h"
 #include "pocketfft_hdronly.h"
 
@@ -13,11 +14,16 @@
 //static std::uniform_int_distribution<> distrib(0, 1000);
 
 static std::default_random_engine generator;
-static std::normal_distribution<double> NORMAL(0, 2.3);
+static std::normal_distribution<double> PHASES_NORM(0, 1.5);
+static std::normal_distribution<double> POWER_NORM(0.018, 0.046);
 
 
 const static float MAX_NUMBER_OF_PERIODS = 4511.0;
 const static int POLYPHONY = 20; /*number of notes allowed simultaniously*/
+
+inline float frequencyFromMidiKey(float k) {
+    return 440.0 * std::powf(2.0, (k - 69.0) / 12.0);
+}
 
 template <typename T> float sign(T val) 
 {
@@ -180,7 +186,6 @@ class DigitalWaveguide
 
          size_t delayLengthFD = delayLength / 2 + 1;
 
-
          std::vector<float> newPowerSpectrum;
          if (delayLengthFD != powerSpectrum.size())
          {
@@ -196,18 +201,31 @@ class DigitalWaveguide
          {
              newPowerSpectrum = powerSpectrum;
          }
+
+         float midiKey = normKey * 87.0f + 21.0f;
+         float f0 = frequencyFromMidiKey(midiKey);
+         size_t i = 0;
+         //float m = 0.95f;
+         float localF0 = int(std::round(f0 * float(delayLength) / model->sampleRate));         
+         while (localF0 < newPowerSpectrum.size()) {
+             newPowerSpectrum[localF0] *= 1.5f;
+             //m *= m;
+             i++;
+             localF0 = int(std::round(f0 * float(i * delayLength) / model->sampleRate));
+         }
          
          std::vector<std::complex<float>> freqsL(newPowerSpectrum.size());
          std::vector<std::complex<float>> freqsR(newPowerSpectrum.size());
 
-         float randomPhaseL = NORMAL(generator);
-         float randomPhaseR = NORMAL(generator);
+         float randomPhaseL = PHASES_NORM(generator);
+         float randomPhaseR = PHASES_NORM(generator);
          for (size_t i = 0; i < freqsL.size(); i++)
          {
-             randomPhaseL += NORMAL(generator);
+             //newPowerSpectrum[i] += std::abs(POWER_NORM(generator));
+             randomPhaseL += PHASES_NORM(generator);
              freqsL[i] = { newPowerSpectrum[i] * std::sin(randomPhaseL), newPowerSpectrum[i] * std::cos(randomPhaseL) };
 
-             randomPhaseR += NORMAL(generator);
+             randomPhaseR += PHASES_NORM(generator);
              freqsR[i] = { newPowerSpectrum[i] * std::sin(randomPhaseR), newPowerSpectrum[i] * std::cos(randomPhaseR) };
          }
          delayL = irfft(freqsL);
@@ -239,11 +257,17 @@ class DigitalWaveguide
              }
          }
 
-         float delta = juce::MathConstants<float>::pi / float(delayL.size() - 1);
+         float n = float(delayL.size() - 1);
+         //float delta = juce::MathConstants<float>::pi / n;
          for (size_t i = 0; i < delayL.size(); i++) {
-             float e = std::sin(float(i) * delta) * 0.5;
              delayL[i] /=  maxDelayAmpL;
              delayR[i] /= maxDelayAmpR;
+
+             float p = (2.0f / n) * (float(i) - (n / 2.0f));
+             float e = 1.0f - p * p * p * p;
+
+             //float e = std::sin(float(i) * delta);
+             //e = std::powf(e, 0.2f);
              delayL[i] *= e;
              delayR[i] *= e;
          }
@@ -257,9 +281,6 @@ class DigitalWaveguide
          DBG("step start");
          size_t pr = currentStep % delayL.size();
          size_t pl = (currentStep + delayL.size() / 2) % delayL.size();
-
-         float wL = (delayL[pr] + delayL[pl])/* / 2.0*/;
-         float wR = (delayR[pr] + delayR[pl])/* / 2.0*/;
 
          float wAvgL = 0.0;
          float wAvgR = 0.0;
@@ -275,6 +296,10 @@ class DigitalWaveguide
          delayL[pl] *= -1;
          delayR[pr] = -1 * wAvgR * sustain;
          delayR[pl] *= -1;
+
+         float wL = (delayL[pr] + delayL[pl]) / 2.0;
+         float wR = (delayR[pr] + delayR[pl]) / 2.0;
+
          currentStep++;
          DBG("step end");
          return { wL, wR };
