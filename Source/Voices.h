@@ -172,9 +172,13 @@ class DigitalWaveguide
          delayR.resize(delayLength);
          powerSpectrum.resize(model->outputShape[0]);
      }
-     void start(const float normKey, const size_t _smoothing = 2, const float _sustain = 0.90, const size_t delayLength = 1102) {
-         //const int reps = 3;
-         //delayLength *= 3;
+     void start(const float normKey, const size_t _smoothing = 2, const float _sustain = 0.90, size_t delayLength = 1102) {
+         
+         //float midiKey = normKey * 87.0f + 21.0f;
+         //float globalFrequency = frequencyFromMidiKey(midiKey);
+         //int period = int(std::round(model->sampleRate / globalFrequency));
+         //int reps = std::ceil(float(delayLength) / float(period));
+         //delayLength = period * reps;
 
          sustain = _sustain;
          smoothing = _smoothing;
@@ -202,17 +206,16 @@ class DigitalWaveguide
              newPowerSpectrum = powerSpectrum;
          }
 
-         float midiKey = normKey * 87.0f + 21.0f;
-         float f0 = frequencyFromMidiKey(midiKey);
-         size_t i = 0;
-         //float m = 0.95f;
-         float localF0 = int(std::round(f0 * float(delayLength) / model->sampleRate));         
-         while (localF0 < newPowerSpectrum.size()) {
-             newPowerSpectrum[localF0] *= 1.5f;
-             //m *= m;
-             i++;
-             localF0 = int(std::round(f0 * float(i * delayLength) / model->sampleRate));
-         }
+
+         //size_t i = 0;
+         ////float m = 0.95f;
+         //float localF0 = int(std::round(globalFrequency * float(delayLength) / model->sampleRate));         
+         //while (localF0 < newPowerSpectrum.size()) {
+         //    newPowerSpectrum[localF0] *= 1.5f;
+         //    //m *= m;
+         //    i++;
+         //    localF0 = int(std::round(globalFrequency * float(i * delayLength) / model->sampleRate));
+         //}
          
          std::vector<std::complex<float>> freqsL(newPowerSpectrum.size());
          std::vector<std::complex<float>> freqsR(newPowerSpectrum.size());
@@ -231,15 +234,6 @@ class DigitalWaveguide
          delayL = irfft(freqsL);
          delayR = irfft(freqsR);
 
-         //auto n = delayL.size() / 10;
-         //for (size_t i = 0; i < n; i++)
-         //{
-         //    float m = float(i) / float(n - 1);
-         //    delayL[i] *= m;
-         //    delayL[n - i - 1] *= m;
-         //    delayR[i] *= m;
-         //    delayR[n - i - 1] *= m;
-         //}
 
          float maxDelayAmpL = 0.0;
          float maxDelayAmpR = 0.0;
@@ -266,7 +260,7 @@ class DigitalWaveguide
              float p = (2.0f / n) * (float(i) - (n / 2.0f));
              float e = 1.0f - p * p * p * p;
 
-             //float e = std::sin(float(i) * delta);
+             //float e = std::sin(float(i * reps) * delta);
              //e = std::powf(e, 0.2f);
              delayL[i] *= e;
              delayR[i] *= e;

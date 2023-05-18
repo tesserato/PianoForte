@@ -26,12 +26,12 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
     fut = std::async(std::launch::async, &pianoVoice::forward, this);
     // 0.99 -> 0.60
     // 0.99 - 0.60
-    auto sustain = 0.99 - pitch * 0.25;
-    //auto sustain = 0.90 + pitch * 0.0999;
+    //auto sustain = 0.90 - pitch * 0.25;
+    auto sustain = 0.90 + pitch * 0.0999;
     float f = frequencyFromMidiKey(midiKey);
-    //int delayLength = 3 * int(std::round(fps / f));
+    int delayLength = int(std::round(fps / f));
     DBG("Frequency=" + std::to_string(f) + ", delay= " + std::to_string(delayLength));
-    dw.start(pitch, 3, sustain);
+    dw.start(pitch, 3, sustain, delayLength);
 
     while (! (fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready))
     {
@@ -99,7 +99,7 @@ void pianoVoice::getNextSample() {
     }
     
     auto WD = dw.step();
-    float alpha = 0.0;
+    float alpha = 0.5;
     W[0] = W[0] * alpha * m + WD[0] * (1.0 - alpha);
     W[1] = W[1] * alpha * m + WD[1] * (1.0 - alpha);
 
