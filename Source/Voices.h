@@ -15,7 +15,7 @@
 
 static std::default_random_engine generator;
 static std::normal_distribution<double> PHASES_NORM(0, 1.5);
-static std::normal_distribution<double> POWER_NORM(0.018, 0.046);
+static std::normal_distribution<double> POWER_NORM(1.0, 0.01);
 
 
 const static float MAX_NUMBER_OF_PERIODS = 4511.0;
@@ -258,7 +258,7 @@ class DigitalWaveguide
              delayR[i] /= maxDelayAmpR;
 
              float p = (2.0f / n) * (float(i) - (n / 2.0f));
-             float e = 1.0f - p * p * p * p;
+             float e = 1.0f - p * p * p * p * p * p;
 
              //float e = std::sin(float(i * reps) * delta);
              //e = std::powf(e, 0.2f);
@@ -268,6 +268,11 @@ class DigitalWaveguide
          auto l = delayL.size();
          delayL.resize(2 * l, 0.0);
          delayR.resize(2 * l, 0.0);
+         //for (size_t i = 0; i < l; i++)
+         //{
+         //    delayL[l + i] = -delayR[i];
+         //    delayR[l + i] = -delayL[i];
+         //}
          DBG("end of start DigitalWaveguide");
          return;
      }
@@ -275,6 +280,9 @@ class DigitalWaveguide
          DBG("step start");
          size_t pr = currentStep % delayL.size();
          size_t pl = (currentStep + delayL.size() / 2) % delayL.size();
+
+         float wL = (delayL[pr] + delayL[pl]) / 2.0;
+         float wR = (delayR[pr] + delayR[pl]) / 2.0;
 
          float wAvgL = 0.0;
          float wAvgR = 0.0;
@@ -287,12 +295,9 @@ class DigitalWaveguide
          wAvgL /= float(smoothing);
          wAvgR /= float(smoothing);
          delayL[pr] = -1 * wAvgL * sustain;
-         delayL[pl] *= -1;
+         delayL[pl] *= -POWER_NORM(generator);
          delayR[pr] = -1 * wAvgR * sustain;
-         delayR[pl] *= -1;
-
-         float wL = (delayL[pr] + delayL[pl]) / 2.0;
-         float wR = (delayR[pr] + delayR[pl]) / 2.0;
+         delayR[pl] *= -POWER_NORM(generator);
 
          currentStep++;
          DBG("step end");
