@@ -15,7 +15,7 @@
 
 static std::default_random_engine generator;
 static std::normal_distribution<double> PHASES_NORM(0, 1.5);
-static std::normal_distribution<double> POWER_NORM(1.0, 0.01);
+//static std::normal_distribution<double> POWER_NORM(1.0, 0.01);
 
 
 const static float MAX_NUMBER_OF_PERIODS = 4511.0;
@@ -62,6 +62,73 @@ inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
     return out;
 }
 
+class ManualPiano
+{
+private:
+    float decay = 0.0009;
+    float n = 44100.0;
+    //float sampleRate = 44100.0;
+    float globalFundamentalFrequency = 0.0;
+    float alpha = 1.0;
+    float beta = 0.004;
+    size_t t = 0;
+    std::vector<float> harmonics;
+    std::vector<float> phasesL;
+    std::vector<float> phasesR;
+public:
+    void start(int midiKey, float sampleRate = 44100.0) {
+        t = 0;
+        harmonics.clear();
+        phasesL.clear();
+        phasesR.clear();
+
+        //sampleRate = _sampleRate;
+        globalFundamentalFrequency = frequencyFromMidiKey(midiKey);
+        float localFundamentaFrequency = globalFundamentalFrequency * n / sampleRate;
+        float localMaxFrequency = 20000.0 * n / sampleRate;
+        float currentHarmonic = localFundamentaFrequency;
+        float pL = PHASES_NORM(generator);
+        float pR = PHASES_NORM(generator);
+        
+        size_t step = 1;
+        while (/*step <= 20 && */currentHarmonic < localMaxFrequency)
+        {
+            harmonics.push_back(currentHarmonic);
+            phasesL.push_back(pL);
+            phasesR.push_back(pR);
+            pL += PHASES_NORM(generator);
+            pR += PHASES_NORM(generator);
+            float s = float(step);
+            float m = 1.0 + alpha * s + beta * s * s;
+            currentHarmonic = localFundamentaFrequency * m;
+            step++;
+        }
+    }
+    std::vector<float> step()
+    {
+        float yL = 0.0;
+        float yR = 0.0;
+        float r = 0.9;
+        float s = (std::pow(r, float(harmonics.size())) - 1.0) / (r - 1.0);
+        float amp = 1.0 / s;
+        // 1 + 0.9 + 0.9 * 0.9 + **harmonics.size() = 1
+        //float amp = 1.0 / float(harmonics.size());
+        for (size_t i = 0; i < harmonics.size(); i++)
+        {
+            float pL = phasesL[i];
+            float pR = phasesR[i];
+            float f = harmonics[i];
+            float pi = juce::MathConstants<float>::pi;
+            float h = 2.0f * pi * f * float(t) / n;
+            float d = std::exp(-decay * h) * amp;
+            yL += std::sin(pL + h) * d;
+            yR += std::sin(pR + h) * d;
+            amp *= r;
+        }
+        t++;
+        return { yL, yR };
+    }
+};
 
 class NeuralModel
  {  
@@ -152,158 +219,158 @@ class NeuralModel
      }
  };
 
-class DigitalWaveguide
- {
- private:
-     NeuralModel* model;// = NeuralModel("engineDW");
-     size_t currentStep = 0;
-     //size_t length = 1102;
-     size_t smoothing;
-     float sustain;
-     std::vector<float> delayL;
-     std::vector<float> delayR;
-     std::vector<float> powerSpectrum;
-     std::vector<float> I{ 0 };
- public:
-     DigitalWaveguide(){}
-     DigitalWaveguide(NeuralModel* m, const size_t delayLength = 1102) {
-         model = m;
-         delayL.resize(delayLength);
-         delayR.resize(delayLength);
-         powerSpectrum.resize(model->outputShape[0]);
-     }
-     void start(const float normKey, const size_t _smoothing = 2, const float _sustain = 0.90, size_t delayLength = 1102) {
-         
-         //float midiKey = normKey * 87.0f + 21.0f;
-         //float globalFrequency = frequencyFromMidiKey(midiKey);
-         //int period = int(std::round(model->sampleRate / globalFrequency));
-         //int reps = std::ceil(float(delayLength) / float(period));
-         //delayLength = period * reps;
-
-         sustain = _sustain;
-         smoothing = _smoothing;
-         currentStep = 0;
-         I[0] = normKey;
-         
-         model->eval(I, powerSpectrum);
-         DBG("outside eval DigitalWaveguide");
-
-         size_t delayLengthFD = delayLength / 2 + 1;
-
-         std::vector<float> newPowerSpectrum;
-         if (delayLengthFD != powerSpectrum.size())
-         {
-             newPowerSpectrum.resize(delayLengthFD, 0.0);
-             size_t n = powerSpectrum.size();
-             for (size_t i = 0; i < n; i++)
-             {
-                 int idx = int(std::round(float(i * (delayLengthFD - 1)) / float(n - 1)));
-                 newPowerSpectrum[idx] += powerSpectrum[i];
-             }
-         }
-         else
-         {
-             newPowerSpectrum = powerSpectrum;
-         }
-
-
-         //size_t i = 0;
-         ////float m = 0.95f;
-         //float localF0 = int(std::round(globalFrequency * float(delayLength) / model->sampleRate));         
-         //while (localF0 < newPowerSpectrum.size()) {
-         //    newPowerSpectrum[localF0] *= 1.5f;
-         //    //m *= m;
-         //    i++;
-         //    localF0 = int(std::round(globalFrequency * float(i * delayLength) / model->sampleRate));
-         //}
-         
-         std::vector<std::complex<float>> freqsL(newPowerSpectrum.size());
-         std::vector<std::complex<float>> freqsR(newPowerSpectrum.size());
-
-         float randomPhaseL = PHASES_NORM(generator);
-         float randomPhaseR = PHASES_NORM(generator);
-         for (size_t i = 0; i < freqsL.size(); i++)
-         {
-             //newPowerSpectrum[i] += std::abs(POWER_NORM(generator));
-             randomPhaseL += PHASES_NORM(generator);
-             freqsL[i] = { newPowerSpectrum[i] * std::sin(randomPhaseL), newPowerSpectrum[i] * std::cos(randomPhaseL) };
-
-             randomPhaseR += PHASES_NORM(generator);
-             freqsR[i] = { newPowerSpectrum[i] * std::sin(randomPhaseR), newPowerSpectrum[i] * std::cos(randomPhaseR) };
-         }
-         delayL = irfft(freqsL);
-         delayR = irfft(freqsR);
-
-
-         float maxDelayAmpL = 0.0;
-         float maxDelayAmpR = 0.0;
-         for (size_t i = 0; i < delayL.size(); i++)
-         {
-             float currDelayAmpL = std::abs(delayL[i]);
-             if (currDelayAmpL > maxDelayAmpL)
-             {
-                 maxDelayAmpL = currDelayAmpL;
-             }
-             float currDelayAmpR = std::abs(delayR[i]);
-             if (currDelayAmpR > maxDelayAmpR)
-             {
-                 maxDelayAmpR = currDelayAmpR;
-             }
-         }
-
-         float n = float(delayL.size() - 1);
-         //float delta = juce::MathConstants<float>::pi / n;
-         for (size_t i = 0; i < delayL.size(); i++) {
-             delayL[i] /=  maxDelayAmpL;
-             delayR[i] /= maxDelayAmpR;
-
-             float p = (2.0f / n) * (float(i) - (n / 2.0f));
-             float e = 1.0f - p * p * p * p * p * p;
-
-             //float e = std::sin(float(i * reps) * delta);
-             //e = std::powf(e, 0.2f);
-             delayL[i] *= e;
-             delayR[i] *= e;
-         }
-         auto l = delayL.size();
-         delayL.resize(2 * l, 0.0);
-         delayR.resize(2 * l, 0.0);
-         //for (size_t i = 0; i < l; i++)
-         //{
-         //    delayL[l + i] = -delayR[i];
-         //    delayR[l + i] = -delayL[i];
-         //}
-         DBG("end of start DigitalWaveguide");
-         return;
-     }
-     std::vector<float> step() {
-         DBG("step start");
-         size_t pr = currentStep % delayL.size();
-         size_t pl = (currentStep + delayL.size() / 2) % delayL.size();
-
-         float wL = (delayL[pr] + delayL[pl]) / 2.0;
-         float wR = (delayR[pr] + delayR[pl]) / 2.0;
-
-         float wAvgL = 0.0;
-         float wAvgR = 0.0;
-         for (size_t i = pr; i < pr + smoothing; i++)
-         {
-             auto idx = i % delayL.size();
-             wAvgL += delayL[idx];
-             wAvgR += delayR[idx];
-         }
-         wAvgL /= float(smoothing);
-         wAvgR /= float(smoothing);
-         delayL[pr] = -1 * wAvgL * sustain;
-         delayL[pl] *= -POWER_NORM(generator);
-         delayR[pr] = -1 * wAvgR * sustain;
-         delayR[pl] *= -POWER_NORM(generator);
-
-         currentStep++;
-         DBG("step end");
-         return { wL, wR };
-     }
- };
+//class DigitalWaveguide
+// {
+// private:
+//     NeuralModel* model;// = NeuralModel("engineDW");
+//     size_t currentStep = 0;
+//     //size_t length = 1102;
+//     size_t smoothing;
+//     float sustain;
+//     std::vector<float> delayL;
+//     std::vector<float> delayR;
+//     std::vector<float> powerSpectrum;
+//     std::vector<float> I{ 0 };
+// public:
+//     DigitalWaveguide(){}
+//     DigitalWaveguide(NeuralModel* m, const size_t delayLength = 1102) {
+//         model = m;
+//         delayL.resize(delayLength);
+//         delayR.resize(delayLength);
+//         powerSpectrum.resize(model->outputShape[0]);
+//     }
+//     void start(const float normKey, const size_t _smoothing = 2, const float _sustain = 0.90, size_t delayLength = 1102) {
+//         
+//         //float midiKey = normKey * 87.0f + 21.0f;
+//         //float globalFrequency = frequencyFromMidiKey(midiKey);
+//         //int period = int(std::round(model->sampleRate / globalFrequency));
+//         //int reps = std::ceil(float(delayLength) / float(period));
+//         //delayLength = period * reps;
+//
+//         sustain = _sustain;
+//         smoothing = _smoothing;
+//         currentStep = 0;
+//         I[0] = normKey;
+//         
+//         model->eval(I, powerSpectrum);
+//         DBG("outside eval DigitalWaveguide");
+//
+//         size_t delayLengthFD = delayLength / 2 + 1;
+//
+//         std::vector<float> newPowerSpectrum;
+//         if (delayLengthFD != powerSpectrum.size())
+//         {
+//             newPowerSpectrum.resize(delayLengthFD, 0.0);
+//             size_t n = powerSpectrum.size();
+//             for (size_t i = 0; i < n; i++)
+//             {
+//                 int idx = int(std::round(float(i * (delayLengthFD - 1)) / float(n - 1)));
+//                 newPowerSpectrum[idx] += powerSpectrum[i];
+//             }
+//         }
+//         else
+//         {
+//             newPowerSpectrum = powerSpectrum;
+//         }
+//
+//
+//         //size_t i = 0;
+//         ////float m = 0.95f;
+//         //float localF0 = int(std::round(globalFrequency * float(delayLength) / model->sampleRate));         
+//         //while (localF0 < newPowerSpectrum.size()) {
+//         //    newPowerSpectrum[localF0] *= 1.5f;
+//         //    //m *= m;
+//         //    i++;
+//         //    localF0 = int(std::round(globalFrequency * float(i * delayLength) / model->sampleRate));
+//         //}
+//         
+//         std::vector<std::complex<float>> freqsL(newPowerSpectrum.size());
+//         std::vector<std::complex<float>> freqsR(newPowerSpectrum.size());
+//
+//         float randomPhaseL = PHASES_NORM(generator);
+//         float randomPhaseR = PHASES_NORM(generator);
+//         for (size_t i = 0; i < freqsL.size(); i++)
+//         {
+//             //newPowerSpectrum[i] += std::abs(POWER_NORM(generator));
+//             randomPhaseL += PHASES_NORM(generator);
+//             freqsL[i] = { newPowerSpectrum[i] * std::sin(randomPhaseL), newPowerSpectrum[i] * std::cos(randomPhaseL) };
+//
+//             randomPhaseR += PHASES_NORM(generator);
+//             freqsR[i] = { newPowerSpectrum[i] * std::sin(randomPhaseR), newPowerSpectrum[i] * std::cos(randomPhaseR) };
+//         }
+//         delayL = irfft(freqsL);
+//         delayR = irfft(freqsR);
+//
+//
+//         float maxDelayAmpL = 0.0;
+//         float maxDelayAmpR = 0.0;
+//         for (size_t i = 0; i < delayL.size(); i++)
+//         {
+//             float currDelayAmpL = std::abs(delayL[i]);
+//             if (currDelayAmpL > maxDelayAmpL)
+//             {
+//                 maxDelayAmpL = currDelayAmpL;
+//             }
+//             float currDelayAmpR = std::abs(delayR[i]);
+//             if (currDelayAmpR > maxDelayAmpR)
+//             {
+//                 maxDelayAmpR = currDelayAmpR;
+//             }
+//         }
+//
+//         float n = float(delayL.size() - 1);
+//         //float delta = juce::MathConstants<float>::pi / n;
+//         for (size_t i = 0; i < delayL.size(); i++) {
+//             delayL[i] /=  maxDelayAmpL;
+//             delayR[i] /= maxDelayAmpR;
+//
+//             float p = (2.0f / n) * (float(i) - (n / 2.0f));
+//             float e = 1.0f - p * p * p * p * p * p;
+//
+//             //float e = std::sin(float(i * reps) * delta);
+//             //e = std::powf(e, 0.2f);
+//             delayL[i] *= e;
+//             delayR[i] *= e;
+//         }
+//         auto l = delayL.size();
+//         delayL.resize(2 * l, 0.0);
+//         delayR.resize(2 * l, 0.0);
+//         //for (size_t i = 0; i < l; i++)
+//         //{
+//         //    delayL[l + i] = -delayR[i];
+//         //    delayR[l + i] = -delayL[i];
+//         //}
+//         DBG("end of start DigitalWaveguide");
+//         return;
+//     }
+//     std::vector<float> step() {
+//         DBG("step start");
+//         size_t pr = currentStep % delayL.size();
+//         size_t pl = (currentStep + delayL.size() / 2) % delayL.size();
+//
+//         float wL = (delayL[pr] + delayL[pl]) / 2.0;
+//         float wR = (delayR[pr] + delayR[pl]) / 2.0;
+//
+//         float wAvgL = 0.0;
+//         float wAvgR = 0.0;
+//         for (size_t i = pr; i < pr + smoothing; i++)
+//         {
+//             auto idx = i % delayL.size();
+//             wAvgL += delayL[idx];
+//             wAvgR += delayR[idx];
+//         }
+//         wAvgL /= float(smoothing);
+//         wAvgR /= float(smoothing);
+//         delayL[pr] = -1 * wAvgL * sustain;
+//         delayL[pl] *= -POWER_NORM(generator);
+//         delayR[pr] = -1 * wAvgR * sustain;
+//         delayR[pl] *= -POWER_NORM(generator);
+//
+//         currentStep++;
+//         DBG("step end");
+//         return { wL, wR };
+//     }
+// };
 
 struct pianoSound : public juce::SynthesiserSound
 {
@@ -321,13 +388,12 @@ struct pianoSound : public juce::SynthesiserSound
 struct pianoVoice : public juce::SynthesiserVoice
 {
 public:
-    DigitalWaveguide dw;
     NeuralModel* MI;// = NeuralModel(); // = ModelInfo::instance();
     double lastActive = juce::Time::getMillisecondCounterHiRes();
     float tailOff = 0.0;
     float fps = getSampleRate();
-    pianoVoice(NeuralModel* _MI, NeuralModel* dwModel) {
-        dw = DigitalWaveguide(dwModel);
+    pianoVoice(NeuralModel* _MI/*, NeuralModel* dwModel*/) {
+        //mp = ManualPiano();
         MI = _MI;
         MI->sampleRate = getSampleRate();
         targetAmps = std::vector<float>(MI->outputShape[0], 0);
@@ -359,6 +425,7 @@ public:
     void getNextSample();
 
 private:
+    ManualPiano mp;
     std::future<void> fut;
     std::vector<float> targetAmps;// = std::vector<float>(MI->outputShape[0], 0);
     std::vector<float> currentAmps;// = std::vector<float>(MI->outputShape[0], 0);

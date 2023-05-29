@@ -27,11 +27,11 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
     // 0.99 -> 0.60
     // 0.99 - 0.60
     //auto sustain = 0.90 - pitch * 0.25;
-    auto sustain = 0.90 + pitch * 0.09999;
-    float f = frequencyFromMidiKey(midiKey);
-    int delayLength = int(std::round(0.5f * fps / f));
-    DBG("Frequency=" + std::to_string(f) + ", delay= " + std::to_string(delayLength));
-    dw.start(pitch, 2, 1.0, delayLength);
+    //auto sustain = 0.90 + pitch * 0.09999;
+    //float f = frequencyFromMidiKey(midiKey);
+    //int delayLength = int(std::round(0.5f * fps / f));
+    //DBG("Frequency=" + std::to_string(f) + ", delay= " + std::to_string(delayLength));
+    mp.start(midiKey);
 
     while (! (fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready))
     {
@@ -90,7 +90,7 @@ void pianoVoice::getNextSample() {
     //float currentAttack = std::min(1.0f, xFloat * xFloat / (0.001f * MI->sampleRate));
     float currentAttack = std::min(1.0f, xFloat / (0.001f * MI->sampleRate));
     float currentDecay = std::expf(-0.005f * currentPeriod);
-    float m = std::min(1.0f, currentAttack * currentDecay);
+    float m = std::min(1.0f, level * currentAttack * currentDecay);
     for (size_t i = 0; i < currentAmps.size(); i++)
     {
         float stepLocal = float(i + 1) * step;
@@ -98,13 +98,13 @@ void pianoVoice::getNextSample() {
         W[1] += currentAmps[i] * std::sin(phasesC2[i] + stepLocal);
     }
     
-    auto WD = dw.step();
+    std::vector<float> WD = mp.step();
     float alpha = 0.0;
-    W[0] = W[0] * alpha * m + WD[0] * (1.0 - alpha);
-    W[1] = W[1] * alpha * m + WD[1] * (1.0 - alpha);
+    W[0] = W[0] * alpha + WD[0] * (1.0 - alpha);
+    W[1] = W[1] * alpha + WD[1] * (1.0 - alpha);
 
-    W[0] *= level;
-    W[1] *= level;
+    //W[0] *= m;
+    //W[1] *= m;
     x++;
     return;
 }
