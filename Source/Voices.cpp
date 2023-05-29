@@ -103,8 +103,13 @@ void pianoVoice::getNextSample() {
     W[0] = W[0] * alpha + WD[0] * (1.0 - alpha);
     W[1] = W[1] * alpha + WD[1] * (1.0 - alpha);
 
-    //W[0] *= m;
-    //W[1] *= m;
+    //if (m < 0.0001)
+    //{
+    //    clearCurrentNote();
+    //}
+
+    W[0] *= m;
+    W[1] *= m;
     x++;
     return;
 }

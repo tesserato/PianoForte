@@ -91,7 +91,7 @@ public:
         float pR = PHASES_NORM(generator);
         
         size_t step = 1;
-        while (/*step <= 20 && */currentHarmonic < localMaxFrequency)
+        while (step <= 30 && currentHarmonic < localMaxFrequency)
         {
             harmonics.push_back(currentHarmonic);
             phasesL.push_back(pL);
