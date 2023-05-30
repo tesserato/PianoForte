@@ -65,12 +65,12 @@ inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
 class ManualPiano
 {
 private:
-    float decay = 0.0009;
+    float decay = 0.0003;
     float n = 44100.0;
     //float sampleRate = 44100.0;
     float globalFundamentalFrequency = 0.0;
     float alpha = 1.0;
-    float beta = 0.004;
+    float beta = 0.006;
     size_t t = 0;
     std::vector<float> harmonics;
     std::vector<float> phasesL;
@@ -91,7 +91,7 @@ public:
         float pR = PHASES_NORM(generator);
         
         size_t step = 1;
-        while (step <= 30 && currentHarmonic < localMaxFrequency)
+        while (step <= 20 /*&& currentHarmonic < localMaxFrequency*/)
         {
             harmonics.push_back(currentHarmonic);
             phasesL.push_back(pL);
@@ -108,7 +108,7 @@ public:
     {
         float yL = 0.0;
         float yR = 0.0;
-        float r = 0.9;
+        float r = 0.90;
         float s = (std::pow(r, float(harmonics.size())) - 1.0) / (r - 1.0);
         float amp = 1.0 / s;
         // 1 + 0.9 + 0.9 * 0.9 + **harmonics.size() = 1
@@ -120,7 +120,7 @@ public:
             float f = harmonics[i];
             float pi = juce::MathConstants<float>::pi;
             float h = 2.0f * pi * f * float(t) / n;
-            float d = std::exp(-decay * h) * amp;
+            float d = std::exp(-decay * h * 0.8) * amp;
             yL += std::sin(pL + h) * d;
             yR += std::sin(pR + h) * d;
             amp *= r;
