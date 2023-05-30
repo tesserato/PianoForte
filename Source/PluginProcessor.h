@@ -5,20 +5,18 @@
 
 struct customSynth : public juce::Synthesiser{
     pianoVoice* findFreeVoice(juce::SynthesiserSound* soundToPlay, int midiChannel, int midiNoteNumber, bool stealIfNoneAvailable) const override {
-        pianoVoice* toUse = nullptr;
-        //toUse = static_cast<SopranoVoice*> (getVoice(0));
-        double oldest = juce::Time::getMillisecondCounterHiRes();
+        //pianoVoice* toUse = nullptr;
+        //double oldest = juce::Time::getMillisecondCounterHiRes();
         for (size_t i = 0; i < getNumVoices(); i++)
         {
-            //SopranoVoice* current = nullptr;
             pianoVoice* current = static_cast<pianoVoice*> (getVoice(i));
-            if (current->tailOff < 0.00001 && current->lastActive < oldest)
+            if (current->tailOff < 0.00001 /*&& current->lastActive < oldest*/)
             {
-                oldest = current->lastActive;
-                toUse = current;
+                //oldest = current->lastActive;
+                return current;
             }
         }
-        return toUse;
+        return nullptr; // toUse;
     }
 };
 
@@ -120,11 +118,11 @@ public:
 
         if (b->getToggleState())
         {
-            message = juce::MidiMessage::controllerEvent(1, 64, 127);
+            message = juce::MidiMessage::controllerEvent(1, 64, 127); // sustain pedal down
             message.setTimeStamp(0.001);
         }
         else {
-            message = juce::MidiMessage::controllerEvent(1, 64, 0);
+            message = juce::MidiMessage::controllerEvent(1, 64, 0);  // sustain pedal up
             message.setTimeStamp(0.001);
         }
         synthAudioSource.midiCollector.addMessageToQueue(message);

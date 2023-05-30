@@ -89,7 +89,7 @@ void pianoVoice::getNextSample() {
 
     //float currentAttack = std::min(1.0f, xFloat * xFloat / (0.001f * MI->sampleRate));
     float currentAttack = std::min(1.0f, xFloat / (0.001f * MI->sampleRate));
-    float currentDecay = std::expf(-0.005f * currentPeriod);
+    currentDecay = std::expf(-0.005f * currentPeriod);
     float m = std::min(1.0f, level * currentAttack * currentDecay);
     for (size_t i = 0; i < currentAmps.size(); i++)
     {
@@ -108,8 +108,8 @@ void pianoVoice::getNextSample() {
     //    clearCurrentNote();
     //}
 
-    W[0] *= m;
-    W[1] *= m;
+    //W[0] *= m;
+    //W[1] *= m;
     x++;
     return;
 }
@@ -126,6 +126,12 @@ void pianoVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int sta
                 outputBuffer.addSample(i, startSample, W[i] / channels);
             startSample++;
         }
+        //if (currentDecay < 0.0001)
+        //{
+        //    isPlaying = false;
+        //    lastActive = juce::Time::getMillisecondCounterHiRes();
+        //    clearCurrentNote();
+        //}
     }
     else
     {

@@ -14,8 +14,8 @@
 //static std::uniform_int_distribution<> distrib(0, 1000);
 
 static std::default_random_engine generator;
-static std::normal_distribution<double> PHASES_NORM(0, 1.5);
-//static std::normal_distribution<double> POWER_NORM(1.0, 0.01);
+static std::normal_distribution<float> PHASES_NORM(0, 1.5);
+//static std::normal_distribution<float> PHASES_NOISE(1.0, 0.01);
 
 
 const static float MAX_NUMBER_OF_PERIODS = 4511.0;
@@ -65,16 +65,16 @@ inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
 class ManualPiano
 {
 private:
-    float decay = 0.0003;
+    float decay = 0.0004;
     float n = 44100.0;
     //float sampleRate = 44100.0;
     float globalFundamentalFrequency = 0.0;
-    float alpha = 1.0;
+    //float alpha = 1.0;
     float beta = 0.006;
     size_t t = 0;
     std::vector<float> harmonics;
-    std::vector<float> phasesL;
-    std::vector<float> phasesR;
+    std::vector<std::vector<float>> phasesL;
+    std::vector<std::vector<float>> phasesR;
 public:
     void start(int midiKey, float sampleRate = 44100.0) {
         t = 0;
@@ -87,19 +87,38 @@ public:
         float localFundamentaFrequency = globalFundamentalFrequency * n / sampleRate;
         float localMaxFrequency = 20000.0 * n / sampleRate;
         float currentHarmonic = localFundamentaFrequency;
-        float pL = PHASES_NORM(generator);
-        float pR = PHASES_NORM(generator);
+        std::vector<float> pL;// = PHASES_NORM(generator);
+        std::vector<float> pR;// = PHASES_NORM(generator);
+        if (midiKey <= 41)
+        {
+            pL = { PHASES_NORM(generator) };
+            pR = { PHASES_NORM(generator) };
+        }
+        else if (midiKey <= 47)
+        {
+            pL = { PHASES_NORM(generator), PHASES_NORM(generator) };
+            pR = { PHASES_NORM(generator), PHASES_NORM(generator) };
+        }
+        else
+        {
+            pL = { PHASES_NORM(generator), PHASES_NORM(generator), PHASES_NORM(generator) };
+            pR = { PHASES_NORM(generator), PHASES_NORM(generator), PHASES_NORM(generator) };
+        }
         
         size_t step = 1;
-        while (step <= 20 /*&& currentHarmonic < localMaxFrequency*/)
+        while (step <= 25 && currentHarmonic < localMaxFrequency)
         {
             harmonics.push_back(currentHarmonic);
             phasesL.push_back(pL);
             phasesR.push_back(pR);
-            pL += PHASES_NORM(generator);
-            pR += PHASES_NORM(generator);
+            for (size_t i = 0; i < pL.size(); i++)
+            {
+                pL[i] += PHASES_NORM(generator);
+                pR[i] += PHASES_NORM(generator);
+            }
+
             float s = float(step);
-            float m = 1.0 + alpha * s + beta * s * s;
+            float m = 1.0f + s * std::sqrt(1.0f + beta * s * s);
             currentHarmonic = localFundamentaFrequency * m;
             step++;
         }
@@ -115,14 +134,22 @@ public:
         //float amp = 1.0 / float(harmonics.size());
         for (size_t i = 0; i < harmonics.size(); i++)
         {
-            float pL = phasesL[i];
-            float pR = phasesR[i];
+
             float f = harmonics[i];
             float pi = juce::MathConstants<float>::pi;
             float h = 2.0f * pi * f * float(t) / n;
-            float d = std::exp(-decay * h * 0.8) * amp;
-            yL += std::sin(pL + h) * d;
-            yR += std::sin(pR + h) * d;
+            float d = std::exp(-decay * h) * amp;
+            int strings = phasesL[i].size();
+            float yPartialL = 0.0;
+            float yPartialR = 0.0;
+            for (size_t j = 0; j < strings; j++)
+            {
+                float m = 1.0 + float(j) * 0.001;
+                yPartialL += std::sin(phasesL[i][j] + h * m) * d;
+                yPartialR += std::sin(phasesR[i][j] + h * m) * d;
+            }
+            yL += yPartialL / float(strings);
+            yR += yPartialR / float(strings);
             amp *= r;
         }
         t++;
@@ -426,6 +453,7 @@ public:
 
 private:
     ManualPiano mp;
+    float currentDecay;
     std::future<void> fut;
     std::vector<float> targetAmps;// = std::vector<float>(MI->outputShape[0], 0);
     std::vector<float> currentAmps;// = std::vector<float>(MI->outputShape[0], 0);
@@ -433,7 +461,6 @@ private:
     std::vector<float> phasesC2;// = std::vector<float>(MI->outputShape[0], 0);
     std::vector<float> I0;// = std::vector<float>(MI->inputShape[0], 0);
     std::vector<float> W = std::vector<float>(2, 0);
-
     long x = 0;
     bool  isPlaying = false;
     float  level = 0.0f, midiKey = 0.0f;
