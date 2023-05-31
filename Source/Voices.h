@@ -68,7 +68,7 @@ inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
 class ManualPiano
 {
 private:
-    float decay = 0.0004;
+    float decay = 0.00038;
     float n = 44100.0;
     //float sampleRate = 44100.0;
     //float globalFundamentalFrequency = 0.0;
@@ -107,7 +107,7 @@ public:
             pR = { PHASES_NORM(generator), PHASES_NORM(generator), PHASES_NORM(generator) };
         }
         
-        for (size_t partial = 1; partial <= 40; partial++)
+        for (size_t partial = 1; partial <= 20; partial++)
         {
             float fLocal = partialFromMidiKey(midiKey, partial) * n / sampleRate;
             if (fLocal >= localMaxFrequency)
@@ -128,7 +128,7 @@ public:
     {
         float yL = 0.0;
         float yR = 0.0;
-        float r = 0.90;
+        float r = 0.92;
         float s = (std::pow(r, float(harmonics.size())) - 1.0) / (r - 1.0);
         float amp = 1.0 / s;
         // 1 + 0.9 + 0.9 * 0.9 + **harmonics.size() = 1
@@ -145,9 +145,9 @@ public:
             float yPartialR = 0.0;
             for (size_t j = 0; j < strings; j++)
             {
-                float m = 1.0 + float(j) * 0.001;
-                yPartialL += std::sin(phasesL[i][j] + h * m) * d;
-                yPartialR += std::sin(phasesR[i][j] + h * m) * d;
+                float m = 1.0 + float(j) * 0.0011;
+                yPartialL += std::cos(phasesL[i][j] + h * m) * d;
+                yPartialR += std::cos(phasesR[i][j] + h * m) * d;
             }
             yL += yPartialL / float(strings);
             yR += yPartialR / float(strings);
