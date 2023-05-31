@@ -91,8 +91,12 @@ public:
         //float currentHarmonic = localFundamentaFrequency;
         std::vector<float> pL;// = PHASES_NORM(generator);
         std::vector<float> pR;// = PHASES_NORM(generator);
+        int firstPartial = 1;
+        int lastPartial = 20;
         if (midiKey <= 41)
         {
+            firstPartial += 2;
+            lastPartial += 4;
             pL = { PHASES_NORM(generator) };
             pR = { PHASES_NORM(generator) };
         }
@@ -107,7 +111,7 @@ public:
             pR = { PHASES_NORM(generator), PHASES_NORM(generator), PHASES_NORM(generator) };
         }
         
-        for (size_t partial = 1; partial <= 20; partial++)
+        for (size_t partial = firstPartial; partial <= lastPartial; partial++)
         {
             float fLocal = partialFromMidiKey(midiKey, partial) * n / sampleRate;
             if (fLocal >= localMaxFrequency)
@@ -130,7 +134,7 @@ public:
         float yR = 0.0;
         float r = 0.92;
         float s = (std::pow(r, float(harmonics.size())) - 1.0) / (r - 1.0);
-        float amp = 1.0 / s;
+        //float amp = 1.0 / s;
         // 1 + 0.9 + 0.9 * 0.9 + **harmonics.size() = 1
         //float amp = 1.0 / float(harmonics.size());
         for (size_t i = 0; i < harmonics.size(); i++)
@@ -139,6 +143,9 @@ public:
             float f = harmonics[i];
             float pi = juce::MathConstants<float>::pi;
             float h = 2.0f * pi * f * float(t) / n;
+
+            float amp = 0.27f * std::exp(-0.08f * float(i));
+
             float d = std::exp(-decay * h) * amp;
             int strings = phasesL[i].size();
             float yPartialL = 0.0;
@@ -151,7 +158,7 @@ public:
             }
             yL += yPartialL / float(strings);
             yR += yPartialR / float(strings);
-            amp *= r;
+            //amp *= r;
         }
         t++;
         return { yL, yR };
