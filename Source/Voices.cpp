@@ -61,7 +61,7 @@ void pianoVoice::controllerMoved(int controllerNumber, int newValue)  {}
 void pianoVoice::getNextSample() {
     DBG("FPS=" << MI->sampleRate);
     float xFloat = float(x);
-    float f = frequencyFromMidiKey(midiKey);
+    float f = partialFromMidiKey(midiKey);
     float step = juce::MathConstants<float>::twoPi * xFloat * f / MI->sampleRate;
     float period = MI->sampleRate / f;
     float currentPeriod = xFloat / period;

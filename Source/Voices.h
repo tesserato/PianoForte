@@ -21,8 +21,11 @@ static std::normal_distribution<float> PHASES_NORM(0, 1.5);
 const static float MAX_NUMBER_OF_PERIODS = 4511.0;
 const static int POLYPHONY = 20; /*number of notes allowed simultaniously*/
 
-inline float frequencyFromMidiKey(float k) {
-    return 440.0 * std::powf(2.0, (k - 69.0) / 12.0);
+inline float partialFromMidiKey(float key, float partial = 1.0f) {
+    float beta = 0.000033; // 0.006;
+    float f0 = 440.0f * std::powf(2.0f, (key - 69.0f) / 12.0f);
+    float m = partial * std::sqrt(1.0f + beta * partial * partial);
+    return m * f0;
 }
 
 template <typename T> float sign(T val) 
@@ -68,9 +71,8 @@ private:
     float decay = 0.0004;
     float n = 44100.0;
     //float sampleRate = 44100.0;
-    float globalFundamentalFrequency = 0.0;
+    //float globalFundamentalFrequency = 0.0;
     //float alpha = 1.0;
-    float beta = 0.006;
     size_t t = 0;
     std::vector<float> harmonics;
     std::vector<std::vector<float>> phasesL;
@@ -83,10 +85,10 @@ public:
         phasesR.clear();
 
         //sampleRate = _sampleRate;
-        globalFundamentalFrequency = frequencyFromMidiKey(midiKey);
-        float localFundamentaFrequency = globalFundamentalFrequency * n / sampleRate;
+        //globalFundamentalFrequency = frequencyFromMidiKey(midiKey);
+        //float localFundamentaFrequency = globalFundamentalFrequency * n / sampleRate;
         float localMaxFrequency = 20000.0 * n / sampleRate;
-        float currentHarmonic = localFundamentaFrequency;
+        //float currentHarmonic = localFundamentaFrequency;
         std::vector<float> pL;// = PHASES_NORM(generator);
         std::vector<float> pR;// = PHASES_NORM(generator);
         if (midiKey <= 41)
@@ -105,10 +107,14 @@ public:
             pR = { PHASES_NORM(generator), PHASES_NORM(generator), PHASES_NORM(generator) };
         }
         
-        size_t step = 1;
-        while (step <= 25 && currentHarmonic < localMaxFrequency)
+        for (size_t partial = 1; partial <= 40; partial++)
         {
-            harmonics.push_back(currentHarmonic);
+            float fLocal = partialFromMidiKey(midiKey, partial) * n / sampleRate;
+            if (fLocal >= localMaxFrequency)
+            {
+                break;
+            }
+            harmonics.push_back(fLocal);
             phasesL.push_back(pL);
             phasesR.push_back(pR);
             for (size_t i = 0; i < pL.size(); i++)
@@ -116,11 +122,6 @@ public:
                 pL[i] += PHASES_NORM(generator);
                 pR[i] += PHASES_NORM(generator);
             }
-
-            float s = float(step);
-            float m = 1.0f + s * std::sqrt(1.0f + beta * s * s);
-            currentHarmonic = localFundamentaFrequency * m;
-            step++;
         }
     }
     std::vector<float> step()
