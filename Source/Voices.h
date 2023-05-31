@@ -68,7 +68,7 @@ inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
 class ManualPiano
 {
 private:
-    float decay = 0.00038;
+    float decay = 0.0004;
     float n = 44100.0;
     //float sampleRate = 44100.0;
     //float globalFundamentalFrequency = 0.0;
@@ -96,7 +96,7 @@ public:
         if (midiKey <= 41)
         {
             firstPartial += 2;
-            lastPartial += 4;
+            lastPartial += 3;
             pL = { PHASES_NORM(generator) };
             pR = { PHASES_NORM(generator) };
         }
@@ -132,19 +132,18 @@ public:
     {
         float yL = 0.0;
         float yR = 0.0;
-        float r = 0.92;
-        float s = (std::pow(r, float(harmonics.size())) - 1.0) / (r - 1.0);
+        //float r = 0.92;
+        //float s = (std::pow(r, float(harmonics.size())) - 1.0) / (r - 1.0);
         //float amp = 1.0 / s;
         // 1 + 0.9 + 0.9 * 0.9 + **harmonics.size() = 1
         //float amp = 1.0 / float(harmonics.size());
         for (size_t i = 0; i < harmonics.size(); i++)
         {
-
             float f = harmonics[i];
             float pi = juce::MathConstants<float>::pi;
             float h = 2.0f * pi * f * float(t) / n;
 
-            float amp = 0.27f * std::exp(-0.08f * float(i));
+            float amp = 0.25f * std::exp(-0.08f * float(i));
 
             float d = std::exp(-decay * h) * amp;
             int strings = phasesL[i].size();
@@ -153,11 +152,21 @@ public:
             for (size_t j = 0; j < strings; j++)
             {
                 float m = 1.0 + float(j) * 0.0011;
-                yPartialL += std::cos(phasesL[i][j] + h * m) * d;
-                yPartialR += std::cos(phasesR[i][j] + h * m) * d;
+                float ap = std::cos(phasesL[i][j] + h * m) * d;
+                if (ap > yPartialL)
+                {
+                    yPartialL = ap;
+                }
+                ap = std::cos(phasesR[i][j] + h * m) * d;
+                if (ap > yPartialR)
+                {
+                    yPartialR = ap;
+                }
+                //yPartialL += 
+                //yPartialR += 
             }
-            yL += yPartialL / float(strings);
-            yR += yPartialR / float(strings);
+            yL += yPartialL;// / float(strings);
+            yR += yPartialR;// / float(strings);
             //amp *= r;
         }
         t++;
