@@ -15,7 +15,7 @@
 
 static std::default_random_engine generator;
 static std::normal_distribution<float> PHASES_NORM(0, 1.5);
-//static std::normal_distribution<float> PHASES_NOISE(1.0, 0.01);
+static std::normal_distribution<float> PHASES_NOISE(0.0001, 0.0001);
 
 
 const static float MAX_NUMBER_OF_PERIODS = 4511.0;
@@ -68,7 +68,7 @@ inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
 class ManualPiano
 {
 private:
-    float decay = 0.0004;
+    float decay = 0.00037;
     float n = 44100.0;
     //float sampleRate = 44100.0;
     //float globalFundamentalFrequency = 0.0;
@@ -152,12 +152,14 @@ public:
             for (size_t j = 0; j < strings; j++)
             {
                 float m = 1.0 + float(j) * 0.0011;
-                float ap = std::cos(phasesL[i][j] + h * m) * d;
+                float ap = std::sin(phasesL[i][j] + h * m) * d;
+                phasesL[i][j] += PHASES_NOISE(generator);
                 if (ap > yPartialL)
                 {
                     yPartialL = ap;
                 }
-                ap = std::cos(phasesR[i][j] + h * m) * d;
+                ap = std::sin(phasesR[i][j] + h * m) * d;
+                phasesR[i][j] += PHASES_NOISE(generator);
                 if (ap > yPartialR)
                 {
                     yPartialR = ap;
