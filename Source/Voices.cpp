@@ -99,7 +99,7 @@ void pianoVoice::getNextSample() {
     }
     
     std::vector<float> WD = mp.step();
-    float alpha = 0.0;
+    float alpha = 0.5f;
     W[0] = W[0] * alpha * m + WD[0] * (1.0 - alpha) * currentAttack * level;
     W[1] = W[1] * alpha * m + WD[1] * (1.0 - alpha) * currentAttack * level;
 

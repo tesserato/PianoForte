@@ -17,8 +17,8 @@ static std::default_random_engine generator;
 static std::normal_distribution<float> PHASES_NORM(0, 1.5);
 static std::normal_distribution<float> PHASES_NOISE(0.0001, 0.0001);
 
-
-const static float MAX_NUMBER_OF_PERIODS = 4511.0;
+const static float CENT = 1.00057778951f;
+const static float MAX_NUMBER_OF_PERIODS = 4511.0f;
 const static int POLYPHONY = 20; /*number of notes allowed simultaniously*/
 
 inline float partialFromMidiKey(float key, float partial = 1.0f) {
@@ -146,18 +146,18 @@ public:
             float pi = juce::MathConstants<float>::pi;
             float h = 2.0f * pi * f * float(t) / n;
 
-            float ampPart = float(i - harmonics.size());
+            float ampPart = float(i) - float(harmonics.size());
             float amp = a * ampPart * ampPart;
 
             float dPart = h * decay;
-            float d = 1.0f / (1.0f + dPart * dPart);
+            float d = amp / (1.0f + dPart * dPart);
             //float d = std::exp(-decay * h) * amp;
             int strings = phasesL[i].size();
             float yPartialL = 0.0;
             float yPartialR = 0.0;
             for (size_t j = 0; j < strings; j++)
             {
-                float m = 1.0 + float(j) * 0.0011;
+                float m = 1.0 + float(j) * 0.0001f * CENT;
                 float ap = std::sin(phasesL[i][j] + h * m);
                 phasesL[i][j] += PHASES_NOISE(generator);
                 if (ap > yPartialL)
