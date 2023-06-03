@@ -71,9 +71,6 @@ private:
     float decay = 0.00037f;
     float n = 44100.0f;
     float a = 0.0f;
-    //float sampleRate = 44100.0;
-    //float globalFundamentalFrequency = 0.0;
-    //float alpha = 1.0;
     size_t t = 0;
     std::vector<float> harmonics;
     std::vector<std::vector<float>> phasesL;
@@ -84,20 +81,16 @@ public:
         harmonics.clear();
         phasesL.clear();
         phasesR.clear();
-
-        //sampleRate = _sampleRate;
-        //globalFundamentalFrequency = frequencyFromMidiKey(midiKey);
-        //float localFundamentaFrequency = globalFundamentalFrequency * n / sampleRate;
-        float localMaxFrequency = 20000.0 * n / sampleRate;
-        //float currentHarmonic = localFundamentaFrequency;
+        float localMaxFrequency = 20000.0f * n / sampleRate;
         std::vector<float> pL;// = PHASES_NORM(generator);
         std::vector<float> pR;// = PHASES_NORM(generator);
         int firstPartial = 1;
-        int lastPartial = 20;
+        int lastPartial = 15;
+
         if (midiKey <= 41)
         {
             firstPartial += 2;
-            lastPartial += 3;
+            lastPartial += 2;
             pL = { PHASES_NORM(generator) };
             pR = { PHASES_NORM(generator) };
         }
@@ -135,11 +128,7 @@ public:
     {
         float yL = 0.0;
         float yR = 0.0;
-        //float r = 0.92;
-        //float s = (std::pow(r, float(harmonics.size())) - 1.0) / (r - 1.0);
-        //float amp = 1.0 / s;
-        // 1 + 0.9 + 0.9 * 0.9 + **harmonics.size() = 1
-        //float amp = 1.0 / float(harmonics.size());
+
         for (size_t i = 0; i < harmonics.size(); i++)
         {
             float f = harmonics[i];
@@ -151,13 +140,12 @@ public:
 
             float dPart = h * decay;
             float d = amp / (1.0f + dPart * dPart);
-            //float d = std::exp(-decay * h) * amp;
             int strings = phasesL[i].size();
             float yPartialL = 0.0;
             float yPartialR = 0.0;
             for (size_t j = 0; j < strings; j++)
             {
-                float m = 1.0 + float(j) * 0.0001f * CENT;
+                float m = 1.0f + float(j) * 0.0001f * CENT;
                 float ap = std::sin(phasesL[i][j] + h * m);
                 phasesL[i][j] += PHASES_NOISE(generator);
                 if (ap > yPartialL)
@@ -170,12 +158,9 @@ public:
                 {
                     yPartialR = ap;
                 }
-                //yPartialL += 
-                //yPartialR += 
             }
-            yL += yPartialL * d;// / float(strings);
-            yR += yPartialR * d;// / float(strings);
-            //amp *= r;
+            yL += yPartialL * d;
+            yR += yPartialR * d;
         }
         t++;
         return { yL, yR };
@@ -443,7 +428,6 @@ public:
     NeuralModel* MI;// = NeuralModel(); // = ModelInfo::instance();
     double lastActive = juce::Time::getMillisecondCounterHiRes();
     float tailOff = 0.0;
-    float fps = getSampleRate();
     pianoVoice(NeuralModel* _MI/*, NeuralModel* dwModel*/) {
         //mp = ManualPiano();
         MI = _MI;
@@ -488,41 +472,24 @@ private:
     std::vector<float> W = std::vector<float>(2, 0);
     long x = 0;
     bool  isPlaying = false;
-    float  level = 0.0f, midiKey = 0.0f;
+    float level = 0.0f;
+    float midiKey = 0.0f;
+    float f = 0.0f;
+    float period = 0.0f;
+    float deltaStep = 0.0f;
 
     void forward() {
-        DBG("forward started");
         MI->eval(I0, targetAmps);
-        //std::vector<Ort::Value> inputTensor;
-        //std::vector<Ort::Value> outputTensor;
-
-        //Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtArenaAllocator, OrtMemType::OrtMemTypeDefault);
-        //inputTensor.push_back(Ort::Value::CreateTensor<float>(memoryInfo, I0.data(), MI->inputShape[0], MI->inputShape.data(), MI->inputShape.size()));
-        //outputTensor.push_back(Ort::Value::CreateTensor<float>(memoryInfo, targetAmps.data(), MI->outputShape[0], MI->outputShape.data(), MI->outputShape.size()));
-        //Ort::AllocatorWithDefaultOptions allocator;
-        //std::vector < const char*> inputNames = { MI->session.GetInputNameAllocated(0, allocator).get() };
-        //std::vector < const char*> outputNames = { MI->session.GetOutputNameAllocated(0, allocator).get() };
-        //MI->session.Run(
-        //    Ort::RunOptions{ nullptr }, 
-        //    inputNames.data(), 
-        //    inputTensor.data(), 
-        //    1, 
-        //    outputNames.data(), 
-        //    outputTensor.data(),
-        //    1
-        //);
 
         float ampsSum = 0.0;
         for (size_t i = 0; i < targetAmps.size(); i++)
         {
-            //targetAmps[i] += targetAmps[i] * float(distrib(gen)) / 1000.0;
             ampsSum += targetAmps[i];
         }
         for (size_t i = 0; i < targetAmps.size(); i++)
         {
             targetAmps[i] /= ampsSum;
         }
-        DBG("forward ended");
         return;
     };
 };
