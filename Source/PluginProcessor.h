@@ -37,6 +37,7 @@ struct SynthAudioSource : public juce::AudioSource
 
     void prepareToPlay(int /*samplesPerBlockExpected*/, double sampleRate) override
     {
+        //DBG(">> fps ptp=" + std::to_string(sampleRate));
         midiCollector.reset(sampleRate);
         synth.setCurrentPlaybackSampleRate(sampleRate);
     }
@@ -53,8 +54,8 @@ struct SynthAudioSource : public juce::AudioSource
         for (auto midi : incomingMidi)
         {
             auto d = midi.getMessage();
-            DBG(d.getDescription());
-            DBG(d.getTimeStamp());
+            //DBG(d.getDescription());
+            //DBG(d.getTimeStamp());
         }
     }
 };

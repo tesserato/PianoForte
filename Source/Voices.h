@@ -170,7 +170,7 @@ public:
 class NeuralModel
  {  
  public:
-     float sampleRate = 44100.0;
+     //float sampleRate = 44100.0;
      std::vector<int64_t> inputShape{ 0 }, outputShape{ 0 };
      Ort::Session session = Ort::Session{ nullptr };
      std::string inputName, outputName;
@@ -214,12 +214,12 @@ class NeuralModel
         //std::cout << input_name.get() << "\n";
         auto output_name = session.GetOutputNameAllocated(0, allocator);
         outputName = output_name.get();
-        DBG("oN=" + outputName);
+        //DBG("oN=" + outputName);
         std::string nm = name;
-        DBG("Model " + nm + " constructed. I=" + std::to_string(inputShape[0]) + " T=" + std::to_string(outputShape[0]) + " IN=" + inputName + " oN=" + outputName);
+        //DBG("Model " + nm + " constructed. I=" + std::to_string(inputShape[0]) + " T=" + std::to_string(outputShape[0]) + " IN=" + inputName + " oN=" + outputName);
      }
      void eval(std::vector<float> &I, std::vector<float> &O) {
-         DBG("before eval ->" + inputName);
+         //DBG("before eval ->" + inputName);
      /*    std::vector<Ort::Value> inputTensor;
          std::vector<Ort::Value> outputTensor;*/
          //DBG("I = " + std::to_string(I.size()) + " O = " + std::to_string(O.size()));
@@ -252,7 +252,7 @@ class NeuralModel
              1
          );
          //DBG("7");
-         DBG("after eval ->" + inputName);
+         //DBG("after eval ->" + inputName);
      }
  };
 
@@ -424,6 +424,8 @@ struct pianoSound : public juce::SynthesiserSound
 
 struct pianoVoice : public juce::SynthesiserVoice
 {
+private:
+    float fps = 44100.0f;
 public:
     NeuralModel* MI;// = NeuralModel(); // = ModelInfo::instance();
     double lastActive = juce::Time::getMillisecondCounterHiRes();
@@ -431,7 +433,7 @@ public:
     pianoVoice(NeuralModel* _MI/*, NeuralModel* dwModel*/) {
         //mp = ManualPiano();
         MI = _MI;
-        MI->sampleRate = getSampleRate();
+        //MI->sampleRate = getSampleRate();
         targetAmps = std::vector<float>(MI->outputShape[0], 0);
         currentAmps = std::vector<float>(MI->outputShape[0], 0);
         phasesC1 = std::vector<float>(MI->outputShape[0], 0);

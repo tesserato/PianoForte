@@ -190,7 +190,7 @@ void PluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
         auto message = metadata.getMessage();
         //const auto time = metadata.samplePosition;
         synthAudioSource.midiCollector.addMessageToQueue(message);
-        DBG(message.getDescription());
+        //DBG(message.getDescription());
     }    
 
     juce::AudioSourceChannelInfo bufferToFill(buffer);
@@ -204,7 +204,7 @@ bool PluginAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* PluginAudioProcessor::createEditor()
 {
-    DBG("PluginAudioProcessor::createEditor()");
+    //DBG("PluginAudioProcessor::createEditor()");
     return new PluginAudioProcessorEditor(*this);
 }
 

@@ -15,6 +15,8 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
     level = velocity;
     x = 0;
     midiKey = midiNoteNumber;
+    fps = float(getSampleRate());
+    //DBG(">> fps=" + std::to_string(fps));
     for (size_t i = 0; i < phasesC1.size(); i++)
     {
         phasesC1[i] = PHASES_NORM(generator);
@@ -25,15 +27,15 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
     I0 = { pitch,  level, 0.0 };
     fut = std::async(std::launch::async, &pianoVoice::forward, this);
 
-    mp.start(midiKey, MI->sampleRate);
+    mp.start(midiKey, fps);
     //f = MI->sampleRate * partialFromMidiKey(midiKey) / 44100.0f;
     f = partialFromMidiKey(midiKey);
-    period = MI->sampleRate / f;
-    deltaStep = juce::MathConstants<float>::twoPi * f / MI->sampleRate;
+    period = fps / f;
+    deltaStep = juce::MathConstants<float>::twoPi * f / fps;
 
     while (! (fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready))
     {
-         DBG("waiting");
+         //DBG("waiting");
     }
     for (size_t i = 0; i < currentAmps.size(); i++)
     {
@@ -69,7 +71,7 @@ void pianoVoice::getNextSample() {
     }    
     for (size_t i = 0; i < currentAmps.size(); i++)
     {
-        currentAmps[i] += (targetAmps[i] - currentAmps[i]) * 2000.0f / MI->sampleRate;
+        currentAmps[i] += (targetAmps[i] - currentAmps[i]) * 2000.0f / fps;
     }
 
     float currentAttack =  6.0f * currentPeriod;
