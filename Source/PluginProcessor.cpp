@@ -131,7 +131,7 @@ void PluginAudioProcessor::changeProgramName (int index, const juce::String& new
 void PluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     //MI.sampleRate = sampleRate;
-    synthAudioSource.prepareToPlay (sampleRate,  samplesPerBlock);
+    synthAudioSource.prepareToPlay(samplesPerBlock, sampleRate);
 }
 
 void PluginAudioProcessor::releaseResources()
