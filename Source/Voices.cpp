@@ -5,13 +5,13 @@
 #define DECAY
 
 
-
-
-
 void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* /*synthesiserSound*/, int /*currentPitchWheelValue*/)
 {    
-    lastActive = juce::Time::getMillisecondCounterHiRes();
-    tailOff = 1.0;
+    keyIsDown = true;
+    voiceIsActive = true;
+    currentDecay = 1.0f;
+    //lastActive = juce::Time::getMillisecondCounterHiRes();
+    tailOff = 1.0f;
     level = velocity;
     x = 0;
     midiKey = midiNoteNumber;
@@ -26,7 +26,6 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
 
     I0 = { pitch,  level, 0.0 };
     fut = std::async(std::launch::async, &pianoVoice::forward, this);
-
     mp.start(midiKey, fps);
     //f = MI->sampleRate * partialFromMidiKey(midiKey) / 44100.0f;
     f = partialFromMidiKey(midiKey);
@@ -41,13 +40,12 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
     {
         currentAmps[i] = targetAmps[i];
     }
-    isPlaying = true;
 }
 
 void pianoVoice::stopNote(float velocity, bool allowTailOff)
 {
-    isPlaying = false;
-    lastActive = juce::Time::getMillisecondCounterHiRes();
+    keyIsDown = false;
+    //lastActive = juce::Time::getMillisecondCounterHiRes();
     if (!allowTailOff)
     {
         tailOff = 0.0; // stopNote method could be called more than once.
@@ -99,7 +97,9 @@ void pianoVoice::getNextSample() {
 
 void pianoVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples)
 {
-    if (isPlaying)
+    //DBG(std::to_string(isSustainPedalDown()));
+    //DBG(currentDecay);
+    if (keyIsDown)
     {
         while (--numSamples >= 0)
         {   
@@ -109,19 +109,37 @@ void pianoVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int sta
                 outputBuffer.addSample(i, startSample, W[i] / channels);
             startSample++;
         }
-        //if (currentDecay < 0.0001)
-        //{
-        //    isPlaying = false;
-        //    lastActive = juce::Time::getMillisecondCounterHiRes();
-        //    clearCurrentNote();
-        //}
     }
-    else
-    {
-        if (tailOff > 0.0001)
+    else if(voiceIsActive)
+    {        
+        if (isSustainPedalDown())
         {
-            while (--numSamples >= 0)
-            {                    
+            if (currentDecay < 0.0002)
+            {
+                lastActive = juce::Time::getMillisecondCounterHiRes();
+                clearCurrentNote();
+                DBG("clearCurrentNote called 2");
+                voiceIsActive = false;
+            }
+            else {
+                getNextSample();
+                float channels = outputBuffer.getNumChannels();
+                for (int i = 0; i < channels; i++)
+                    outputBuffer.addSample(i, startSample, tailOff * W[i] / channels);
+                startSample++;
+            }
+        }
+        else
+        {
+            if (tailOff < 0.0001)
+            {
+                tailOff = 0.0;
+                lastActive = juce::Time::getMillisecondCounterHiRes();
+                clearCurrentNote();
+                DBG("clearCurrentNote called");
+                voiceIsActive = false;
+            }
+            else {
                 getNextSample();
                 float channels = outputBuffer.getNumChannels();
                 for (int i = 0; i < channels; i++)
@@ -129,11 +147,6 @@ void pianoVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int sta
                 startSample++;
                 tailOff *= 0.99;
             }
-        }
-        else {
-            tailOff = 0.0;    
-            lastActive = juce::Time::getMillisecondCounterHiRes();
-            clearCurrentNote();
-        }        
+        } 
     }    
 }

@@ -8,6 +8,7 @@
 #include <cmath>
 #include "core/session/onnxruntime_cxx_api.h"
 #include "pocketfft_hdronly.h"
+//#include "PluginProcessor.h"
 
 //static std::random_device rd;  //Will be used to obtain a seed for the random number engine
 //static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
@@ -424,13 +425,13 @@ struct pianoSound : public juce::SynthesiserSound
 
 struct pianoVoice : public juce::SynthesiserVoice
 {
-private:
-    float fps = 44100.0f;
 public:
     NeuralModel* MI;// = NeuralModel(); // = ModelInfo::instance();
+    //customSynth* CS;
     double lastActive = juce::Time::getMillisecondCounterHiRes();
     float tailOff = 0.0;
-    pianoVoice(NeuralModel* _MI/*, NeuralModel* dwModel*/) {
+    bool  voiceIsActive = false;
+    pianoVoice(NeuralModel* _MI) {
         //mp = ManualPiano();
         MI = _MI;
         //MI->sampleRate = getSampleRate();
@@ -464,7 +465,7 @@ public:
 
 private:
     ManualPiano mp;
-    float currentDecay;
+    float currentDecay = 1.0f;
     std::future<void> fut;
     std::vector<float> targetAmps;// = std::vector<float>(MI->outputShape[0], 0);
     std::vector<float> currentAmps;// = std::vector<float>(MI->outputShape[0], 0);
@@ -473,12 +474,13 @@ private:
     std::vector<float> I0;// = std::vector<float>(MI->inputShape[0], 0);
     std::vector<float> W = std::vector<float>(2, 0);
     long x = 0;
-    bool  isPlaying = false;
+    bool  keyIsDown = false;
     float level = 0.0f;
     float midiKey = 0.0f;
     float f = 0.0f;
     float period = 0.0f;
     float deltaStep = 0.0f;
+    float fps = 44100.0f;
 
     void forward() {
         MI->eval(I0, targetAmps);

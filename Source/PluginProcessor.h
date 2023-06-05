@@ -4,19 +4,33 @@
 #include "Voices.h"
 
 struct customSynth : public juce::Synthesiser{
+    bool isSustainOn = false;
     pianoVoice* findFreeVoice(juce::SynthesiserSound* soundToPlay, int midiChannel, int midiNoteNumber, bool stealIfNoneAvailable) const override {
         //pianoVoice* toUse = nullptr;
         //double oldest = juce::Time::getMillisecondCounterHiRes();
+        
         for (size_t i = 0; i < getNumVoices(); i++)
         {
             pianoVoice* current = static_cast<pianoVoice*> (getVoice(i));
-            if (current->tailOff < 0.00001 /*&& current->lastActive < oldest*/)
+            if (!current->voiceIsActive /*&& current->lastActive < oldest*/)
             {
                 //oldest = current->lastActive;
                 return current;
             }
         }
         return nullptr; // toUse;
+    }
+
+    //void handleMidiEvent(const juce::MidiMessage& message) override
+    //{
+
+    //}
+    void handleSustainPedal(int midiChannel, bool isDown) override
+    {
+        for (size_t i = 0; i < getNumVoices(); i++) {
+            pianoVoice* voice = static_cast<pianoVoice*> (getVoice(i));
+            voice->setSustainPedalDown(isDown);
+;        }
     }
 };
 
@@ -54,7 +68,7 @@ struct SynthAudioSource : public juce::AudioSource
         for (auto midi : incomingMidi)
         {
             auto d = midi.getMessage();
-            //DBG(d.getDescription());
+            DBG(d.getDescription() /*+ " @ " + d.getTimeStamp()*/);
             //DBG(d.getTimeStamp());
         }
     }
@@ -115,12 +129,15 @@ public:
 
     void buttonClicked(juce::Button* b) override
     {
-        juce::MidiMessage message;
+        //synthAudioSource.synth.handleSustainPedal(1, b->getToggleState());
+        //DBG(std::to_string(b->getToggleState()));
 
+        juce::MidiMessage message;
         if (b->getToggleState())
         {
             message = juce::MidiMessage::controllerEvent(1, 64, 127); // sustain pedal down
             message.setTimeStamp(0.001);
+
         }
         else {
             message = juce::MidiMessage::controllerEvent(1, 64, 0);  // sustain pedal up

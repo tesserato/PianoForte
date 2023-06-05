@@ -219,6 +219,7 @@ public:
         if (midiInputList.getSelectedId() == 0) { setMidiInput(0); }    // if no enabled devices were found just use the first one in the list
 
         sustainButton.addListener(&p);
+        //sustainButton.setToggleable(true);
         sustainButton.setClickingTogglesState(true);
         sustainButton.setColour(juce::DrawableButton::backgroundOnColourId, juce::Colours::transparentWhite);
         sustainButton.setImages(&sustainOff, &sustainOffOver, nullptr , nullptr ,&sustainOn, &sustainOnOver);
