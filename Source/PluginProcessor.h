@@ -54,7 +54,7 @@ struct SynthAudioSource : public juce::AudioSource
         for (auto midi : incomingMidi)
         {
             auto d = midi.getMessage();
-            //DBG(d.getDescription());
+            DBG(d.getDescription() /*+ " @ " + d.getTimeStamp()*/);
             //DBG(d.getTimeStamp());
         }
     }
@@ -115,18 +115,20 @@ public:
 
     void buttonClicked(juce::Button* b) override
     {
-        juce::MidiMessage message;
+        synthAudioSource.synth.handleSustainPedal(1, b->getToggleState());
 
-        if (b->getToggleState())
-        {
-            message = juce::MidiMessage::controllerEvent(1, 64, 127); // sustain pedal down
-            message.setTimeStamp(0.001);
-        }
-        else {
-            message = juce::MidiMessage::controllerEvent(1, 64, 0);  // sustain pedal up
-            message.setTimeStamp(0.001);
-        }
-        synthAudioSource.midiCollector.addMessageToQueue(message);
+
+        //juce::MidiMessage message;
+        //if (b->getToggleState())
+        //{
+        //    message = juce::MidiMessage::controllerEvent(1, 64, 127); // sustain pedal down
+        //    message.setTimeStamp(0.001);
+        //}
+        //else {
+        //    message = juce::MidiMessage::controllerEvent(1, 64, 0);  // sustain pedal up
+        //    message.setTimeStamp(0.001);
+        //}
+        //synthAudioSource.midiCollector.addMessageToQueue(message);
     }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginAudioProcessor)

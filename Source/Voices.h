@@ -464,7 +464,7 @@ public:
 
 private:
     ManualPiano mp;
-    float currentDecay;
+    float currentDecay = 1.0f;
     std::future<void> fut;
     std::vector<float> targetAmps;// = std::vector<float>(MI->outputShape[0], 0);
     std::vector<float> currentAmps;// = std::vector<float>(MI->outputShape[0], 0);
@@ -473,7 +473,8 @@ private:
     std::vector<float> I0;// = std::vector<float>(MI->inputShape[0], 0);
     std::vector<float> W = std::vector<float>(2, 0);
     long x = 0;
-    bool  isPlaying = false;
+    bool  keyIsDown = false;
+    bool  voiceIsActive = false;
     float level = 0.0f;
     float midiKey = 0.0f;
     float f = 0.0f;
