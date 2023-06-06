@@ -67,10 +67,16 @@ void pianoVoice::getNextSample() {
         I0 = { pitch,  level, pc };
         fut = std::async(std::launch::async, &pianoVoice::forward, this);
     }    
+    //float ampsSum = 0.0f;
     for (size_t i = 0; i < currentAmps.size(); i++)
     {
         currentAmps[i] += (targetAmps[i] - currentAmps[i]) * 2000.0f / fps;
+        //ampsSum += currentAmps[i];
     }
+    //for (size_t i = 0; i < currentAmps.size(); i++)
+    //{
+    //    currentAmps[i] /= ampsSum;
+    //}
 
     float currentAttack =  6.0f * currentPeriod;
 
@@ -89,8 +95,9 @@ void pianoVoice::getNextSample() {
     //std::vector<float> WD = mp.step();
     std::vector<float> WD = { 0.0f,0.0f };
     float alpha = 1.0f;
-    W[0] = W[0] * alpha * m + WD[0] * (1.0 - alpha) * currentAttack * level;
-    W[1] = W[1] * alpha * m + WD[1] * (1.0 - alpha) * currentAttack * level;
+    float eq = 0.7f;
+    W[0] = W[0] * alpha * eq * m + WD[0] * (1.0 - alpha) * currentAttack * level;
+    W[1] = W[1] * alpha * eq * m + WD[1] * (1.0 - alpha) * currentAttack * level;
     x++;
     return;
 }
@@ -114,7 +121,7 @@ void pianoVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int sta
     {        
         if (isSustainOn)
         {
-            if (currentDecay > 0.0002)
+            if (currentDecay > 0.01)
             {
                 while (--numSamples >= 0)
                 {
