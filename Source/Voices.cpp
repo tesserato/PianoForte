@@ -1,9 +1,9 @@
 #pragma once
 #include "Voices.h"
-//#include <random>
 #include <typeinfo>
-#define DECAY
+//#define DECAY
 
+bool isSustainOn = false;
 
 void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* /*synthesiserSound*/, int /*currentPitchWheelValue*/)
 {    
@@ -97,7 +97,7 @@ void pianoVoice::getNextSample() {
 
 void pianoVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples)
 {
-    //DBG(std::to_string(isSustainPedalDown()));
+    //DBG(std::to_string(isSustainOn));
     //DBG(currentDecay);
     if (keyIsDown)
     {
@@ -112,40 +112,46 @@ void pianoVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int sta
     }
     else if(voiceIsActive)
     {        
-        if (isSustainPedalDown())
+        if (isSustainOn)
         {
-            if (currentDecay < 0.0002)
+            if (currentDecay > 0.0002)
             {
-                lastActive = juce::Time::getMillisecondCounterHiRes();
-                clearCurrentNote();
-                DBG("clearCurrentNote called 2");
-                voiceIsActive = false;
+                while (--numSamples >= 0)
+                {
+                    getNextSample();
+                    float channels = outputBuffer.getNumChannels();
+                    for (int i = 0; i < channels; i++)
+                        outputBuffer.addSample(i, startSample, tailOff * W[i] / channels);
+                    startSample++;
+                }
             }
             else {
-                getNextSample();
-                float channels = outputBuffer.getNumChannels();
-                for (int i = 0; i < channels; i++)
-                    outputBuffer.addSample(i, startSample, tailOff * W[i] / channels);
-                startSample++;
+                lastActive = juce::Time::getMillisecondCounterHiRes();
+                clearCurrentNote();
+                DBG("clearCurrentNote 2 called");
+                voiceIsActive = false;
             }
         }
         else
         {
-            if (tailOff < 0.0001)
+            if (tailOff > 0.0001)
             {
+                while (--numSamples >= 0)
+                {
+                    getNextSample();
+                    float channels = outputBuffer.getNumChannels();
+                    for (int i = 0; i < channels; i++)
+                        outputBuffer.addSample(i, startSample, tailOff * W[i] / channels);
+                    startSample++;
+                    tailOff *= 0.99;
+                }
+            }
+            else {
                 tailOff = 0.0;
-                lastActive = juce::Time::getMillisecondCounterHiRes();
                 clearCurrentNote();
                 DBG("clearCurrentNote called");
                 voiceIsActive = false;
-            }
-            else {
-                getNextSample();
-                float channels = outputBuffer.getNumChannels();
-                for (int i = 0; i < channels; i++)
-                    outputBuffer.addSample(i, startSample, tailOff * W[i] / channels);
-                startSample++;
-                tailOff *= 0.99;
+                lastActive = juce::Time::getMillisecondCounterHiRes();
             }
         } 
     }    

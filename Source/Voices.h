@@ -1,26 +1,21 @@
 #pragma once
 #include <JuceHeader.h>
 #include <future>
-//#include <math.h>       /* modf */
 #include <random>
 #include <functional> /*lambda functions*/
-//#include <complex>
 #include <cmath>
 #include "core/session/onnxruntime_cxx_api.h"
 #include "pocketfft_hdronly.h"
-//#include "PluginProcessor.h"
 
-//static std::random_device rd;  //Will be used to obtain a seed for the random number engine
-//static std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-//static std::uniform_int_distribution<> distrib(0, 1000);
 
 static std::default_random_engine generator;
 static std::normal_distribution<float> PHASES_NORM(0, 1.5);
 static std::normal_distribution<float> PHASES_NOISE(0.0001, 0.0001);
-
 const static float CENT = 1.00057778951f;
 const static float MAX_NUMBER_OF_PERIODS = 4511.0f;
 const static int POLYPHONY = 20; /*number of notes allowed simultaniously*/
+
+extern bool isSustainOn;
 
 inline float partialFromMidiKey(float key, float partial = 1.0f) {
     float beta = 0.000033; // 0.006;

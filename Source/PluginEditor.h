@@ -1,5 +1,4 @@
 #pragma once
-//#include <JuceHeader.h>
 #include "PluginProcessor.h"
 
 const juce::String websiteAddress = "https://github.com/tesserato/PianoForte";

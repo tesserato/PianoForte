@@ -1,10 +1,7 @@
 #pragma once
-//#include <JuceHeader.h>
-//#include <filesystem>
 #include "Voices.h"
 
 struct customSynth : public juce::Synthesiser{
-    bool isSustainOn = false;
     pianoVoice* findFreeVoice(juce::SynthesiserSound* soundToPlay, int midiChannel, int midiNoteNumber, bool stealIfNoneAvailable) const override {
         //pianoVoice* toUse = nullptr;
         //double oldest = juce::Time::getMillisecondCounterHiRes();
@@ -27,10 +24,11 @@ struct customSynth : public juce::Synthesiser{
     //}
     void handleSustainPedal(int midiChannel, bool isDown) override
     {
-        for (size_t i = 0; i < getNumVoices(); i++) {
-            pianoVoice* voice = static_cast<pianoVoice*> (getVoice(i));
-            voice->setSustainPedalDown(isDown);
-;        }
+        isSustainOn = isDown;
+//        for (size_t i = 0; i < getNumVoices(); i++) {
+//            pianoVoice* voice = static_cast<pianoVoice*> (getVoice(i));
+//            voice->setSustainPedalDown(isDown);
+//;        }
     }
 };
 
