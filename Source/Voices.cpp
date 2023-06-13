@@ -92,12 +92,15 @@ void pianoVoice::getNextSample() {
         W[1] += currentAmps[i] * std::sin(phasesC2[i] + stepLocal);
     }
     
-    //std::vector<float> WD = mp.step();
-    std::vector<float> WD = { 0.0f,0.0f };
-    float alpha = 1.0f;
+    std::vector<float> WD = mp.step();
+    //std::vector<float> WD = { 0.0f,0.0f };
+    float alpha = 0.0f;
     float eq = 0.7f;
-    W[0] = W[0] * alpha * eq * m + WD[0] * (1.0 - alpha) * currentAttack * level;
-    W[1] = W[1] * alpha * eq * m + WD[1] * (1.0 - alpha) * currentAttack * level;
+    W[0] = W[0] * alpha * eq + WD[0] * (1.0 - alpha);
+    W[1] = W[1] * alpha * eq + WD[1] * (1.0 - alpha);
+
+    //W[0] *= m;
+    //W[1] *= m;
     x++;
     return;
 }
