@@ -94,13 +94,13 @@ void pianoVoice::getNextSample() {
     
     std::vector<float> WD = mp.step();
     //std::vector<float> WD = { 0.0f,0.0f };
-    float alpha = 0.0f;
-    float eq = 0.7f;
+    float alpha = 0.5f;
+    float eq = 1.0f;
     W[0] = W[0] * alpha * eq + WD[0] * (1.0 - alpha);
     W[1] = W[1] * alpha * eq + WD[1] * (1.0 - alpha);
 
-    //W[0] *= m;
-    //W[1] *= m;
+    W[0] *= m;
+    W[1] *= m;
     x++;
     return;
 }
