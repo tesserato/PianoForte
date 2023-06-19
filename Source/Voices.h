@@ -7,14 +7,25 @@
 #include "core/session/onnxruntime_cxx_api.h"
 #include "pocketfft_hdronly.h"
 
-const static std::vector<float> G1F = { 2.0, 2.99, 12.06, 10.05, 3.99, 5.99, 4.99, 13.1, 7.01, 18.29 };
-const static std::vector<float> G1A = { 0.23208921732809587, 0.12390899962772157, 0.1202655072325983, 0.0958528522927792, 0.09290752021964575, 0.09251198222817361, 0.07335574633060316, 0.06024279863644426, 0.058645570020530696, 0.05021980608340747 };
 
-const static std::vector<float> G2F = { 1.0, 3.01, 5.01, 6.02, 7.03, 12.12, 10.07, 11.1, 2.01, 15.22 };
-const static std::vector<float> G2A = { 0.20852840635984818, 0.15470666471198966, 0.1239913441652017, 0.10206270094142252, 0.09695878812782073, 0.07130066260549245, 0.06724863503062305, 0.06497701280358988, 0.05518694681005616, 0.05503883844395576 };
+const static std::vector<float> G1F = { 2.01,3.0,3.99,5.99,7.01,10.06,11.08,12.09,14.15,22.72 }; // 8
+const static std::vector<float> G1A = { 0.1431617389879472,0.19320556001474967,0.08470070385619279,0.10513146538522498,0.08607603226613593,0.0805687558389831,0.08484577630091915,0.07312444456466811,0.07985302169343264,0.06933250109174649 };
 
-const static std::vector<float> G3F = {1.01, 3.03, 2.02, 6.13, 5.09, 4.05, 7.2, 11.65, 0.17, 8.28};
-const static std::vector<float> G3A = { 0.5137265224293492, 0.19877101057760907, 0.10506174395438699, 0.047354350988609746, 0.032083361615701335, 0.029841748834395228, 0.023803921899924047, 0.017275966126186502, 0.01615561127455513, 0.015925762299282668 };
+//const static std::vector<float> G1F = { 2.97, 3.98, 4.96, 10.01, 12.07, 13.11, 14.16, 20.73, 24.17, 32.77 }; // 4
+//const static std::vector<float> G1A = { 0.12261541714984443, 0.06598906491970383, 0.16283800513820545, 0.08353395024774311, 0.07073833075944513, 0.11430039988032084, 0.09564955337099756, 0.07085446035614486, 0.11344498298476866, 0.10003583519282616 };
+
+const static std::vector<float> G2F = { 2.0, 2.99, 12.06, 10.05, 3.99, 5.99, 4.99, 13.1, 7.01, 18.29 }; // 12
+const static std::vector<float> G2A = { 0.23208921732809587, 0.12390899962772157, 0.1202655072325983, 0.0958528522927792, 0.09290752021964575, 0.09251198222817361, 0.07335574633060316, 0.06024279863644426, 0.058645570020530696, 0.05021980608340747 };
+
+//const static std::vector<float> G2F = { 1.0, 3.01, 5.01, 6.02, 7.03, 12.12, 10.07, 11.1, 2.01, 15.22 };
+//const static std::vector<float> G2A = { 0.20852840635984818, 0.15470666471198966, 0.1239913441652017, 0.10206270094142252, 0.09695878812782073, 0.07130066260549245, 0.06724863503062305, 0.06497701280358988, 0.05518694681005616, 0.05503883844395576 };
+
+const static std::vector<float> G3F = { 1.0, 2.0, 3.01, 4.01, 5.03, 6.04, 7.05, 8.07, 9.1, 10.13 }; // 37
+const static std::vector<float> G3A = { 0.10773400458385235, 0.272778545876089, 0.06630505454321182, 0.1550014113098807, 0.05740899421221104, 0.03951455268959777, 0.14688965448475877, 0.06546200703521633, 0.05604805622000711, 0.03285771904517506 };
+
+//const static std::vector<float> G3F = {1.01, 3.03, 2.02, 6.13, 5.09, 4.05, 7.2, 11.65, 0.17, 8.28}; // 51
+//const static std::vector<float> G3A = { 0.5137265224293492, 0.19877101057760907, 0.10506174395438699, 0.047354350988609746, 0.032083361615701335, 0.029841748834395228, 0.023803921899924047, 0.017275966126186502, 0.01615561127455513, 0.015925762299282668 };
+
 
 
 
@@ -103,9 +114,10 @@ public:
         //int firstPartial = 1;
         //int lastPartial = 10;
 
+        //harmonics = G1F;
+        //amplitudes = G1A;
 
-
-        if (midiKey <= 15 + 20)
+        if (midiKey <= 10 + 20)
         {
             harmonics =  G1F;
             amplitudes = G1A;
@@ -134,27 +146,6 @@ public:
             phasesL.push_back(phasesL.back() + PHASES_NORM(generator));
             phasesR.push_back(phasesR.back() + PHASES_NORM(generator));
         }
-        
-        //for (size_t partial = firstPartial; partial <= lastPartial; partial++)
-        //{
-        //    float fLocal = partialFromMidiKey(midiKey, partial) * n / sampleRate;
-        //    if (fLocal >= localMaxFrequency)
-        //    {
-        //        break;
-        //    }
-        //    harmonics.push_back(fLocal);
-        //    phasesL.push_back(phasesL.back() + PHASES_NORM(generator));
-        //    phasesR.push_back(phasesR.back() + PHASES_NORM(generator));
-        //}
-        //float N = float(harmonics.size());
-        //a = 6.0f / (N * (2.0f * N * N + 3.0f * N + 1.0f));
-
-        //for (size_t i = 0; i < harmonics.size(); i++)
-        //{
-        //    float ampPart = float(i) - float(harmonics.size());
-        //    float amp = a * ampPart * ampPart;
-        //    amplitudes.push_back(amp);
-        //}
     }
     std::vector<float> step()
     {
@@ -168,33 +159,9 @@ public:
             float pR = currPhasesR[i];
             currPhasesL[i] += f * (phasesL[i] - pL) / fps;
             currPhasesR[i] += f * (phasesR[i] - pR) / fps;
-            //float f = harmonics[i];
-            //float pi = juce::MathConstants<float>::pi;
-            //float h = 2.0f * pi * f * float(t) / n;
 
-            //float dPart = h * decay;
-            //float d = amplitudes[i] / (1.0f + dPart * dPart);
-            //int strings = phasesL[i].size();
-            //float yPartialL = 0.0;
-            //float yPartialR = 0.0;
-            //for (size_t j = 0; j < strings; j++)
-            //{
-            //    //float m = 1.0f + float(j) * 0.0001f * CENT;
-            //    float ap = std::sin(phasesL[i][j] + h);
-            //    phasesL[i][j] += PHASES_NOISE(generator);
-            //    if (ap > yPartialL)
-            //    {
-            //        yPartialL = ap;
-            //    }
-            //    ap = std::sin(phasesR[i][j] + h);
-            //    phasesR[i][j] += PHASES_NOISE(generator);
-            //    if (ap > yPartialR)
-            //    {
-            //        yPartialR = ap;
-            //    }
-            //}
             float h = 2.0f * juce::MathConstants<float>::pi * f * float(t) / n;
-            float d = std::exp(-0.0005f * h);
+            float d = std::exp(-0.0003f * h);
             yL += a * std::sin(pL + h) * d;
             yR += a * std::sin(pR + h) * d;
         }
