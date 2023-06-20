@@ -4,18 +4,19 @@
 struct customSynth : public juce::Synthesiser{
     pianoVoice* findFreeVoice(juce::SynthesiserSound* soundToPlay, int midiChannel, int midiNoteNumber, bool stealIfNoneAvailable) const override {
         //pianoVoice* toUse = nullptr;
-        //double oldest = juce::Time::getMillisecondCounterHiRes();
+        pianoVoice* oldest = static_cast<pianoVoice*> (getVoice(0));
         
-        for (size_t i = 0; i < getNumVoices(); i++)
+        for (size_t i = 1; i < getNumVoices(); i++)
         {
             pianoVoice* current = static_cast<pianoVoice*> (getVoice(i));
-            if (!current->voiceIsActive /*&& current->lastActive < oldest*/)
+            if (current->lastActive < oldest->lastActive)
             {
-                //oldest = current->lastActive;
-                return current;
+                oldest = current;
             }
         }
-        return nullptr; // toUse;
+        oldest->tailOffRatio = 0.93;
+        oldest->stopNote(0.0f, true);
+        return oldest;
     }
 
     //void handleMidiEvent(const juce::MidiMessage& message) override

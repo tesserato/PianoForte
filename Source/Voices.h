@@ -14,14 +14,14 @@ const static std::vector<float> G1A = { 0.1431617389879472,0.19320556001474967,0
 //const static std::vector<float> G1F = { 2.97, 3.98, 4.96, 10.01, 12.07, 13.11, 14.16, 20.73, 24.17, 32.77 }; // 4
 //const static std::vector<float> G1A = { 0.12261541714984443, 0.06598906491970383, 0.16283800513820545, 0.08353395024774311, 0.07073833075944513, 0.11430039988032084, 0.09564955337099756, 0.07085446035614486, 0.11344498298476866, 0.10003583519282616 };
 
-const static std::vector<float> G2F = { 2.0, 2.99, 12.06, 10.05, 3.99, 5.99, 4.99, 13.1, 7.01, 18.29 }; // 12
-const static std::vector<float> G2A = { 0.23208921732809587, 0.12390899962772157, 0.1202655072325983, 0.0958528522927792, 0.09290752021964575, 0.09251198222817361, 0.07335574633060316, 0.06024279863644426, 0.058645570020530696, 0.05021980608340747 };
+const static std::vector<float> G2F = { 2.0,2.99,3.99,4.99,5.99,7.01,10.05,12.06,13.1,18.29 }; // 12
+const static std::vector<float> G2A = { 0.23208921732809587,0.12390899962772157,0.09290752021964575,0.07335574633060316,0.09251198222817361,0.058645570020530696,0.0958528522927792,0.1202655072325983,0.06024279863644426,0.05021980608340747 };
 
 //const static std::vector<float> G2F = { 1.0, 3.01, 5.01, 6.02, 7.03, 12.12, 10.07, 11.1, 2.01, 15.22 };
 //const static std::vector<float> G2A = { 0.20852840635984818, 0.15470666471198966, 0.1239913441652017, 0.10206270094142252, 0.09695878812782073, 0.07130066260549245, 0.06724863503062305, 0.06497701280358988, 0.05518694681005616, 0.05503883844395576 };
 
-const static std::vector<float> G3F = { 1.0, 2.0, 3.01, 4.01, 5.03, 6.04, 7.05, 8.07, 9.1, 10.13 }; // 37
-const static std::vector<float> G3A = { 0.10773400458385235, 0.272778545876089, 0.06630505454321182, 0.1550014113098807, 0.05740899421221104, 0.03951455268959777, 0.14688965448475877, 0.06546200703521633, 0.05604805622000711, 0.03285771904517506 };
+const static std::vector<float> G3F = { 1.00,2.00,3.03,4.05,5.09,6.13,7.2,8.28,11.65,13.32 }; // 51
+const static std::vector<float> G3A = { 0.5137265224293492,0.10506174395438699,0.19877101057760907,0.029841748834395228,0.032083361615701335,0.047354350988609746,0.023803921899924047,0.015925762299282668,0.017275966126186502, 0.01615561127455513 };
 
 //const static std::vector<float> G3F = {1.01, 3.03, 2.02, 6.13, 5.09, 4.05, 7.2, 11.65, 0.17, 8.28}; // 51
 //const static std::vector<float> G3A = { 0.5137265224293492, 0.19877101057760907, 0.10506174395438699, 0.047354350988609746, 0.032083361615701335, 0.029841748834395228, 0.023803921899924047, 0.017275966126186502, 0.01615561127455513, 0.015925762299282668 };
@@ -34,7 +34,7 @@ static std::normal_distribution<float> PHASES_NORM(0, 1.5);
 static std::normal_distribution<float> PHASES_NOISE(0.01, 0.001);
 const static float CENT = 1.00057778951f;
 const static float MAX_NUMBER_OF_PERIODS = 4511.0f;
-const static int POLYPHONY = 20; /*number of notes allowed simultaniously*/
+const static int POLYPHONY = 10; /*number of notes allowed simultaniously*/
 
 extern bool isSustainOn;
 
@@ -122,7 +122,7 @@ public:
             harmonics =  G1F;
             amplitudes = G1A;
         }
-        else if (midiKey <= 30 + 20)
+        else if (midiKey <= 44 + 20)
         {
             harmonics = G2F;
             amplitudes = G2A;
@@ -222,29 +222,11 @@ class NeuralModel
         //DBG("Model " + nm + " constructed. I=" + std::to_string(inputShape[0]) + " T=" + std::to_string(outputShape[0]) + " IN=" + inputName + " oN=" + outputName);
      }
      void eval(std::vector<float> &I, std::vector<float> &O) {
-         //DBG("before eval ->" + inputName);
-     /*    std::vector<Ort::Value> inputTensor;
-         std::vector<Ort::Value> outputTensor;*/
-         //DBG("I = " + std::to_string(I.size()) + " O = " + std::to_string(O.size()));
          Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtDeviceAllocator, OrtMemType::OrtMemTypeDefault);
          auto inputTensor = Ort::Value::CreateTensor<float>(memoryInfo, I.data(), I.size(), inputShape.data(), inputShape.size());
-         //DBG("1");
          auto outputTensor = Ort::Value::CreateTensor<float>(memoryInfo, O.data(), O.size(), outputShape.data(), outputShape.size());
-         //DBG("2");
-         //Ort::AllocatorWithDefaultOptions allocator;
-         //DBG("3");
-         //std::vector < const char* >inputNames{ session.GetInputNameAllocated(0, allocator).get() };
-         //DBG("4");
-         //std::vector < const char* >outputNames{ session.GetOutputNameAllocated(0, allocator).get() };
-         //DBG("5");
-         //std::string oN = *outputNames.data();
-         //DBG("oN=" + inputName);
-         //std::string iN(*inputNames.begin(), *inputNames.end());
-         //DBG("iN=" + iN);
-
          std::vector < const char* >inputNames{ inputName.data()};
          std::vector < const char* >outputNames{ outputName.data() };
-
          session.Run(
              Ort::RunOptions{ nullptr },
              inputNames.data(),
@@ -254,8 +236,6 @@ class NeuralModel
              &outputTensor,
              1
          );
-         //DBG("7");
-         //DBG("after eval ->" + inputName);
      }
  };
 
@@ -432,6 +412,7 @@ public:
     //customSynth* CS;
     double lastActive = juce::Time::getMillisecondCounterHiRes();
     float tailOff = 0.0;
+    float tailOffRatio = 0.9997;
     bool  voiceIsActive = false;
     pianoVoice(NeuralModel* _MI) {
         //mp = ManualPiano();
@@ -486,7 +467,6 @@ private:
 
     void forward() {
         MI->eval(I0, targetAmps);
-
         //float ampsSum = 0.0;
         //for (size_t i = 0; i < targetAmps.size(); i++)
         //{

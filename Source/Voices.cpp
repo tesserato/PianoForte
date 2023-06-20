@@ -7,10 +7,11 @@ bool isSustainOn = false;
 
 void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* /*synthesiserSound*/, int /*currentPitchWheelValue*/)
 {    
+    lastActive = juce::Time::getMillisecondCounterHiRes();
     keyIsDown = true;
     voiceIsActive = true;
     currentDecay = 1.0f;
-    //lastActive = juce::Time::getMillisecondCounterHiRes();
+    
     tailOff = 1.0f;
     level = velocity;
     x = 0;
@@ -94,10 +95,13 @@ void pianoVoice::getNextSample() {
     
     std::vector<float> WD = mp.step();
     //std::vector<float> WD = { 0.0f,0.0f };
-    float alpha = 0.65f;
+    float alpha = 0.75f;
     //float eq = 1.0f;
-    W[0] = W[0] * alpha  + WD[0] * (1.0f - alpha);
-    W[1] = W[1] * alpha  + WD[1] * (1.0f - alpha);
+    W[0] = 0.74f * W[0] * alpha  + WD[0] * (1.0f - alpha);
+    W[1] = 0.74f * W[1] * alpha  + WD[1] * (1.0f - alpha);
+
+    //W[0] = std::max(W[0], WD[0]);
+    //W[1] = std::max(W[1], WD[1]);
 
     W[0] *= m;
     W[1] *= m;
@@ -136,7 +140,7 @@ void pianoVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int sta
                 }
             }
             else {
-                lastActive = juce::Time::getMillisecondCounterHiRes();
+                //lastActive = juce::Time::getMillisecondCounterHiRes();
                 clearCurrentNote();
                 DBG("clearCurrentNote 2 called");
                 voiceIsActive = false;
@@ -153,7 +157,7 @@ void pianoVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int sta
                     for (int i = 0; i < channels; i++)
                         outputBuffer.addSample(i, startSample, tailOff * W[i] / channels);
                     startSample++;
-                    tailOff *= 0.99;
+                    tailOff *= tailOffRatio;
                 }
             }
             else {
@@ -161,7 +165,7 @@ void pianoVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int sta
                 clearCurrentNote();
                 DBG("clearCurrentNote called");
                 voiceIsActive = false;
-                lastActive = juce::Time::getMillisecondCounterHiRes();
+                //lastActive = juce::Time::getMillisecondCounterHiRes();
             }
         } 
     }    
