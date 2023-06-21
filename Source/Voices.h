@@ -8,23 +8,16 @@
 #include "pocketfft_hdronly.h"
 
 
-const static std::vector<float> G1F = { 2.0,3.0,3.99,5.99,7.01,10.06,11.08,12.09,14.15,22.72 }; // 8
-const static std::vector<float> G1A = { 0.1431617389879472,0.19320556001474967,0.08470070385619279,0.10513146538522498,0.08607603226613593,0.0805687558389831,0.08484577630091915,0.07312444456466811,0.07985302169343264,0.06933250109174649 };
+const static std::vector<float> G1F = { 2.01,3.0,3.99,5.02,7.03,9.07,10.09,12.13,16.34,18.47,23.97,43.46,44.6 }; // 6
+const static std::vector<float> G1A = { 0.08361312127094107,0.17722663981890502,0.0785634447859186,0.055689120378443015,0.07626867298344961,0.06812575280265179,0.08195590921387327,0.12262551050085131,0.047938598896454104,0.05283410342757357,0.06610008150892285,0.04377700225646506,0.045282042155550685 };
 
-//const static std::vector<float> G1F = { 2.97, 3.98, 4.96, 10.01, 12.07, 13.11, 14.16, 20.73, 24.17, 32.77 }; // 4
-//const static std::vector<float> G1A = { 0.12261541714984443, 0.06598906491970383, 0.16283800513820545, 0.08353395024774311, 0.07073833075944513, 0.11430039988032084, 0.09564955337099756, 0.07085446035614486, 0.11344498298476866, 0.10003583519282616 };
+const static std::vector<float> G2F = { 1.98,3.01,4.01,6.01,9.04,11.09,13.13,14.15,14.19,15.19,20.47,22.57,23.69 }; // 13
+const static std::vector<float> G2A = { 0.24269384285644227,0.07052851765757988,0.047061190142169355,0.10840876708699342,0.09188640321466986,0.08144203829761783,0.04228555577561662,0.09610226462853295,0.03785757321294113,0.06726106660383388,0.03668751097990114,0.041375189678632414,0.036410079865069396 };
 
-const static std::vector<float> G2F = { 2.0,2.99,3.99,4.99,5.99,7.01,10.05,12.06,13.1,18.29 }; // 12
-const static std::vector<float> G2A = { 0.23208921732809587,0.12390899962772157,0.09290752021964575,0.07335574633060316,0.09251198222817361,0.058645570020530696,0.0958528522927792,0.1202655072325983,0.06024279863644426,0.05021980608340747 };
 
-//const static std::vector<float> G2F = { 1.0, 3.01, 5.01, 6.02, 7.03, 12.12, 10.07, 11.1, 2.01, 15.22 };
-//const static std::vector<float> G2A = { 0.20852840635984818, 0.15470666471198966, 0.1239913441652017, 0.10206270094142252, 0.09695878812782073, 0.07130066260549245, 0.06724863503062305, 0.06497701280358988, 0.05518694681005616, 0.05503883844395576 };
+const static std::vector<float> G3F = { 1.0,2.0,3.01,4.01,5.03,6.04,7.05,8.07,9.1,10.13,11.17,13.25,15.38 }; // 37
+const static std::vector<float> G3A = { 0.10197161354012407,0.25818838322735743,0.06275858234133298,0.14671081868086436,0.05433834743401193,0.0374010296158477,0.13903293707516398,0.06196062709021847,0.05305020221441158,0.03110025141297645,0.02143888118545714,0.0159564601968566,0.01609186598537729 };
 
-const static std::vector<float> G3F = { 1.00,2.00,3.03,4.05,5.09,6.13,7.2,8.28,11.65,13.32 }; // 51
-const static std::vector<float> G3A = { 0.5137265224293492,0.10506174395438699,0.19877101057760907,0.029841748834395228,0.032083361615701335,0.047354350988609746,0.023803921899924047,0.015925762299282668,0.017275966126186502, 0.01615561127455513 };
-
-//const static std::vector<float> G3F = {1.01, 3.03, 2.02, 6.13, 5.09, 4.05, 7.2, 11.65, 0.17, 8.28}; // 51
-//const static std::vector<float> G3A = { 0.5137265224293492, 0.19877101057760907, 0.10506174395438699, 0.047354350988609746, 0.032083361615701335, 0.029841748834395228, 0.023803921899924047, 0.017275966126186502, 0.01615561127455513, 0.015925762299282668 };
 
 
 
@@ -85,9 +78,7 @@ inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
 class ManualPiano
 {
 private:
-    //float decay = 0.00037f;
     float n = 44100.0f;
-    //float a = 0.0f;
     float fps = 44100.0f;
     size_t idx = 0;
     size_t t = 0;
@@ -96,8 +87,8 @@ private:
     std::vector<float> amplitudes;
     std::vector<float> phasesL;
     std::vector<float> phasesR;
-    std::vector<float> currPhasesL;
-    std::vector<float> currPhasesR;
+    //std::vector<float> currPhasesL;
+    //std::vector<float> currPhasesR;
 public:
     void start(int midiKey, float sampleRate = 44100.0) {
         fps = sampleRate;
@@ -122,7 +113,7 @@ public:
             harmonics =  G1F;
             amplitudes = G1A;
         }
-        else if (midiKey <= 44 + 20)
+        else if (midiKey <= 30 + 20)
         {
             harmonics = G2F;
             amplitudes = G2A;
@@ -132,10 +123,10 @@ public:
             harmonics = G3F;
             amplitudes = G3A;
         }
-        currPhasesL.resize(harmonics.size());
-        std::fill(currPhasesL.begin(), currPhasesL.end(), 0.0f);
-        currPhasesR.resize(harmonics.size());
-        std::fill(currPhasesR.begin(), currPhasesR.end(), 0.0f);
+        //currPhasesL.resize(harmonics.size());
+        //std::fill(currPhasesL.begin(), currPhasesL.end(), 0.0f);
+        //currPhasesR.resize(harmonics.size());
+        //std::fill(currPhasesR.begin(), currPhasesR.end(), 0.0f);
 
         phasesL.clear();
         phasesR.clear();
@@ -155,10 +146,10 @@ public:
         {
             float f = harmonics[i] * fLocal;
             float a = amplitudes[i];
-            float pL = currPhasesL[i];
-            float pR = currPhasesR[i];
-            currPhasesL[i] += f * (phasesL[i] - pL) / fps;
-            currPhasesR[i] += f * (phasesR[i] - pR) / fps;
+            float pL = phasesL[i];
+            float pR = phasesR[i];
+            //currPhasesL[i] += 1000.0f * (phasesL[i] - pL) / fps;
+            //currPhasesR[i] += 1000.0f * (phasesR[i] - pR) / fps;
 
             float h = 2.0f * juce::MathConstants<float>::pi * f * float(t) / n;
             float d = std::exp(-0.0003f * h);
@@ -410,10 +401,10 @@ struct pianoVoice : public juce::SynthesiserVoice
 public:
     NeuralModel* MI;// = NeuralModel(); // = ModelInfo::instance();
     //customSynth* CS;
-    double lastActive = juce::Time::getMillisecondCounterHiRes();
+    double lastActivated = juce::Time::getMillisecondCounterHiRes();
     float tailOff = 0.0;
     float tailOffRatio = 0.9997;
-    bool  voiceIsActive = false;
+    bool  isSounding = false;
     pianoVoice(NeuralModel* _MI) {
         //mp = ManualPiano();
         MI = _MI;

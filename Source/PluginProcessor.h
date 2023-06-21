@@ -5,16 +5,26 @@ struct customSynth : public juce::Synthesiser{
     pianoVoice* findFreeVoice(juce::SynthesiserSound* soundToPlay, int midiChannel, int midiNoteNumber, bool stealIfNoneAvailable) const override {
         //pianoVoice* toUse = nullptr;
         pianoVoice* oldest = static_cast<pianoVoice*> (getVoice(0));
-        
+        if (!oldest->isSounding)
+        {
+            DBG("returned voice 0");
+            return oldest;
+        }        
         for (size_t i = 1; i < getNumVoices(); i++)
         {
             pianoVoice* current = static_cast<pianoVoice*> (getVoice(i));
-            if (current->lastActive < oldest->lastActive)
+            if (!current->isSounding)
+            {
+                DBG("returned voice " + std::to_string(i));
+                return current;
+            }
+            if (current->lastActivated < oldest->lastActivated)
             {
                 oldest = current;
+                DBG("oldest voice = " + std::to_string(i));
             }
         }
-        oldest->tailOffRatio = 0.93;
+        oldest->tailOffRatio = 0.92f;
         oldest->stopNote(0.0f, true);
         return oldest;
     }
