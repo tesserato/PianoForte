@@ -4,6 +4,7 @@
 #include <random>
 #include <functional> /*lambda functions*/
 #include <cmath>
+#include <queue>
 #include "core/session/onnxruntime_cxx_api.h"
 #include "pocketfft_hdronly.h"
 
@@ -24,11 +25,11 @@ const static std::vector<float> G3A = { 0.10197161354012407,0.25818838322735743,
 
 static std::default_random_engine generator;
 static std::normal_distribution<float> PHASES_NORM(0, 1.5);
-static std::normal_distribution<float> PHASES_NOISE(0.01, 0.001);
-const static float CENT = 1.00057778951f;
+//static std::normal_distribution<float> PHASES_NOISE(0.01, 0.001);
+//const static float CENT = 1.00057778951f;
 const static float MAX_NUMBER_OF_PERIODS = 4511.0f;
+const static float DEFAULT_TAILOFF_RATIO = 0.9997;
 const static int POLYPHONY = 10; /*number of notes allowed simultaniously*/
-
 extern bool isSustainOn;
 
 inline float partialFromMidiKey(float key, float partial = 1.0f) {
@@ -87,26 +88,14 @@ private:
     std::vector<float> amplitudes;
     std::vector<float> phasesL;
     std::vector<float> phasesR;
-    //std::vector<float> currPhasesL;
-    //std::vector<float> currPhasesR;
+    std::queue<float> Ql;
+    std::queue<float> Qr;
 public:
     void start(int midiKey, float sampleRate = 44100.0) {
         fps = sampleRate;
         t = 0;
         fLocal = partialFromMidiKey(midiKey) * n / sampleRate;
         idx = midiKey - 21;
-        //harmonics.clear();
-        //amplitudes.clear();
-        //phasesL.clear();
-        //phasesR.clear();
-        //float localMaxFrequency = 20000.0f * n / sampleRate;
-        //std::vector<float> pL;// = PHASES_NORM(generator);
-        //std::vector<float> pR;// = PHASES_NORM(generator);
-        //int firstPartial = 1;
-        //int lastPartial = 10;
-
-        //harmonics = G1F;
-        //amplitudes = G1A;
 
         if (midiKey <= 10 + 20)
         {
@@ -123,10 +112,6 @@ public:
             harmonics = G3F;
             amplitudes = G3A;
         }
-        //currPhasesL.resize(harmonics.size());
-        //std::fill(currPhasesL.begin(), currPhasesL.end(), 0.0f);
-        //currPhasesR.resize(harmonics.size());
-        //std::fill(currPhasesR.begin(), currPhasesR.end(), 0.0f);
 
         phasesL.clear();
         phasesR.clear();
@@ -138,7 +123,7 @@ public:
             phasesR.push_back(phasesR.back() + PHASES_NORM(generator));
         }
     }
-    std::vector<float> step()
+    void step()
     {
         float yL = 0.0;
         float yR = 0.0;
@@ -148,16 +133,25 @@ public:
             float a = amplitudes[i];
             float pL = phasesL[i];
             float pR = phasesR[i];
-            //currPhasesL[i] += 1000.0f * (phasesL[i] - pL) / fps;
-            //currPhasesR[i] += 1000.0f * (phasesR[i] - pR) / fps;
-
             float h = 2.0f * juce::MathConstants<float>::pi * f * float(t) / n;
             float d = std::exp(-0.0003f * h);
             yL += a * std::sin(pL + h) * d;
             yR += a * std::sin(pR + h) * d;
         }
         t++;
-        return { yL, yR };
+        Ql.push(yL);
+        Qr.push(yR);
+        return;
+    }
+    std::vector<float> get() {
+        if (Ql.empty())
+        {
+            step();
+        }
+        std::vector<float> W = { Ql.front(), Qr.front() };
+        Ql.pop();
+        Qr.pop();
+        return W;
     }
 };
 
@@ -401,14 +395,12 @@ struct pianoVoice : public juce::SynthesiserVoice
 public:
     NeuralModel* MI;// = NeuralModel(); // = ModelInfo::instance();
     //customSynth* CS;
-    double lastActivated = juce::Time::getMillisecondCounterHiRes();
+    double lastActivated = 0.0;
     float tailOff = 0.0;
-    float tailOffRatio = 0.9997;
+    float tailOffRatio = DEFAULT_TAILOFF_RATIO;
     bool  isSounding = false;
     pianoVoice(NeuralModel* _MI) {
-        //mp = ManualPiano();
         MI = _MI;
-        //MI->sampleRate = getSampleRate();
         targetAmps = std::vector<float>(MI->outputShape[0], 0);
         currentAmps = std::vector<float>(MI->outputShape[0], 0);
         phasesC1 = std::vector<float>(MI->outputShape[0], 0);
@@ -458,15 +450,6 @@ private:
 
     void forward() {
         MI->eval(I0, targetAmps);
-        //float ampsSum = 0.0;
-        //for (size_t i = 0; i < targetAmps.size(); i++)
-        //{
-        //    ampsSum += targetAmps[i];
-        //}
-        //for (size_t i = 0; i < targetAmps.size(); i++)
-        //{
-        //    targetAmps[i] /= ampsSum;
-        //}
         return;
     };
 };

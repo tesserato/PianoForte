@@ -13,7 +13,7 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
     currentDecay = 1.0f; 
     tailOff = 1.0f;
     level = velocity;
-    tailOffRatio = 0.9997;
+    tailOffRatio = DEFAULT_TAILOFF_RATIO;
     x = 0;
     midiKey = midiNoteNumber;
     fps = float(getSampleRate());
@@ -28,14 +28,13 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
     I0 = { pitch,  level, 0.0f };
     fut = std::async(std::launch::async, &pianoVoice::forward, this);
     mp.start(midiKey, fps);
-    //f = MI->sampleRate * partialFromMidiKey(midiKey) / 44100.0f;
     f = partialFromMidiKey(midiKey);
     period = fps / f;
     deltaStep = juce::MathConstants<float>::twoPi * f / fps;
 
     while (! (fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready))
     {
-         //DBG("waiting");
+        mp.step();
     }
     for (size_t i = 0; i < currentAmps.size(); i++)
     {
@@ -47,7 +46,6 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
 void pianoVoice::stopNote(float velocity, bool allowTailOff)
 {
     keyIsDown = false;
-    //lastActive = juce::Time::getMillisecondCounterHiRes();
     if (!allowTailOff)
     {
         tailOff = 0.0; // stopNote method could be called more than once.
@@ -69,22 +67,16 @@ void pianoVoice::getNextSample() {
         I0 = { pitch,  level, pc };
         fut = std::async(std::launch::async, &pianoVoice::forward, this);
     }    
-    //float ampsSum = 0.0f;
     for (size_t i = 0; i < currentAmps.size(); i++)
     {
         currentAmps[i] += (targetAmps[i] - currentAmps[i]) * 2000.0f / fps;
-        //ampsSum += currentAmps[i];
     }
-    //for (size_t i = 0; i < currentAmps.size(); i++)
-    //{
-    //    currentAmps[i] /= ampsSum;
-    //}
+
 
     float currentAttack =  6.0f * currentPeriod;
     float dPart = -0.003f * currentPeriod;
     currentDecay = 1.0f / (1.0f + dPart * dPart);
 
-    //currentDecay = std::expf(-0.005f * currentPeriod);
     float m = std::min(currentAttack, currentDecay) * level;
     for (size_t i = 0; i < currentAmps.size(); i++)
     {
@@ -93,15 +85,10 @@ void pianoVoice::getNextSample() {
         W[1] += currentAmps[i] * std::sin(phasesC2[i] + stepLocal);
     }
     
-    std::vector<float> WD = mp.step();
-    //std::vector<float> WD = { 0.0f,0.0f };
-    float alpha = 1.0f - (1.0f - pitch) * 0.90f;
-    //float eq = 1.0f;
+    std::vector<float> WD = mp.get();
+    float alpha = 1.0f - (1.0f - pitch) * 0.95f;
     W[0] = 0.70f * W[0] * alpha  + WD[0] * (1.0f - alpha);
     W[1] = 0.70f * W[1] * alpha  + WD[1] * (1.0f - alpha);
-
-    //W[0] = std::max(W[0], WD[0]);
-    //W[1] = std::max(W[1], WD[1]);
 
     W[0] *= m;
     W[1] *= m;
@@ -111,7 +98,6 @@ void pianoVoice::getNextSample() {
 
 void pianoVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples)
 {
-    
     if(isSounding)
     {        
         DBG(W[0]);
