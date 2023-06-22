@@ -6,7 +6,8 @@
 bool isSustainOn = false;
 
 void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* /*synthesiserSound*/, int /*currentPitchWheelValue*/)
-{    
+{   
+    double timeKeyPressed = juce::Time::getMillisecondCounterHiRes();
     W = { 0.0f, 0.0f };
     keyIsDown = true;
     isSounding = true;
@@ -32,9 +33,13 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
     period = fps / f;
     deltaStep = juce::MathConstants<float>::twoPi * f / fps;
 
-    while (! (fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready))
+    bool futureReady = fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+    bool delayPassed = juce::Time::getMillisecondCounterHiRes() - timeKeyPressed > 700.0;
+    while ((!futureReady) && (!delayPassed))
     {
         mp.step();
+        futureReady = fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+        delayPassed = juce::Time::getMillisecondCounterHiRes() - timeKeyPressed > 700.0;
     }
     for (size_t i = 0; i < currentAmps.size(); i++)
     {

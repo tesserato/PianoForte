@@ -856,7 +856,8 @@
         <CONFIGURATION isDebug="0" name="Release" binaryPath="Releases" enablePluginBinaryCopyStep="1"
                        useRuntimeLibDLL="0" vst3BinaryLocation="C:\Program Files\Common Files\VST3"
                        libraryPath="C:\Users\tesse\Desktop\Files\Reps\onnxruntime\build\Windows"
-                       defines="BUILD_TYPE=Release&#10;LIBPROTOBUF=libprotobuf-lite.lib"/>
+                       defines="BUILD_TYPE=Release&#10;LIBPROTOBUF=libprotobuf-lite.lib"
+                       fastMath="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="C:\Users\tesse\Desktop\Files\Reps\JUCE\modules"/>
