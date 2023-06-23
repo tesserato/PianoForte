@@ -10,7 +10,7 @@ struct customSynth : public juce::Synthesiser{
             DBG("returned voice 0");
             return oldest;
         }        
-        for (size_t i = 1; i < getNumVoices(); i++)
+        for (int i = 1; i < getNumVoices(); i++)
         {
             pianoVoice* current = static_cast<pianoVoice*> (getVoice(i));
             if (!current->isSounding)
@@ -128,11 +128,11 @@ public:
 
     void setStateInformation(const void* data, int sizeInBytes) override;
 
-    void sliderDragStarted(juce::Slider* slider) {};
+    void sliderDragStarted(juce::Slider* slider) override {};
 
     void sliderValueChanged(juce::Slider* slider) override {};
 
-    void sliderDragEnded(juce::Slider* slider) {};
+    void sliderDragEnded(juce::Slider* slider) override {};
 
     void buttonStateChanged(juce::Button* b) override {};
 
