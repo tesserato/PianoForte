@@ -16,26 +16,20 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
     I0 = { pitch,  level, 0.0f };
     fut = std::async(std::launch::async, &pianoVoice::forward, this);
     lastActivated = juce::Time::getMillisecondCounterHiRes();
-    //W[0] = 0.0f;
-    //W[1] = 0.0f;
     currentDecay = 1.0f; 
     tailOff = 1.0f;
     fps = float(getSampleRate());
     tailOffRatio = DEFAULT_TAILOFF_RATIO;
     x = 0;
-
     for (size_t i = 0; i < phasesC1.size(); i++)
     {
         phasesC1[i] = PHASES_NORM(generator);
         phasesC2[i] = PHASES_NORM(generator);
     }
-
     fLocal = partialFromMidiKey(midiKey) * n / fps;
     period = fps / fLocal;
     deltaStep = juce::MathConstants<float>::twoPi * fLocal / fps;
     // Start physical model
-    Q = {};
-    //fillQueue();
     t = 0;
     if (midiKey <= 10 + 20)
     {
@@ -70,8 +64,6 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
         futureReady = (fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
         delayPassed = (juce::Time::getMillisecondCounterHiRes() - lastActivated > 100.0);
     }
-    //futStepping = std::async(std::launch::async, &pianoVoice::step, this);
-
     for (size_t i = 0; i < currentAmps.size(); i++)
     {
         currentAmps[i] = targetAmps[i];
@@ -156,6 +148,7 @@ void pianoVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int sta
                 clearCurrentNote();
                 DBG("clearCurrentNote 2 called");
                 isSounding = false;
+                Q = {};
             }
         }
         else
@@ -176,6 +169,7 @@ void pianoVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int sta
                 clearCurrentNote();
                 DBG("clearCurrentNote called");
                 isSounding = false;
+                Q = {};
             }
         } 
     }    

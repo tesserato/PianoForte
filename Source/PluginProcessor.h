@@ -74,12 +74,12 @@ struct SynthAudioSource : public juce::AudioSource
         midiCollector.removeNextBlockOfMessages(incomingMidi, bufferToFill.numSamples);
         keyboardState.processNextMidiBuffer(incomingMidi, bufferToFill.startSample, bufferToFill.numSamples, true);
         synth.renderNextBlock(*bufferToFill.buffer, incomingMidi, bufferToFill.startSample, bufferToFill.numSamples);
-        for (auto midi : incomingMidi)
-        {
-            auto d = midi.getMessage();
-            DBG(d.getDescription() /*+ " @ " + d.getTimeStamp()*/);
-            //DBG(d.getTimeStamp());
-        }
+        //for (auto midi : incomingMidi)
+        //{
+        //    auto d = midi.getMessage();
+        //    DBG(d.getDescription() /*+ " @ " + d.getTimeStamp()*/);
+        //    //DBG(d.getTimeStamp());
+        //}
     }
 };
 
