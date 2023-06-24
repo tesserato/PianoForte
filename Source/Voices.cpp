@@ -34,8 +34,8 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
     period = fps / fLocal;
     deltaStep = juce::MathConstants<float>::twoPi * fLocal / fps;
     // Start physical model
-    Ql = {};
-    Qr = {};
+    Q = {};
+    //fillQueue();
     t = 0;
     if (midiKey <= 10 + 20)
     {
@@ -62,20 +62,20 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
         phasesL.push_back(phasesL.back() + PHASES_NORM(generator));
         phasesR.push_back(phasesR.back() + PHASES_NORM(generator));
     }
-
     bool futureReady = (fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
     bool delayPassed = (juce::Time::getMillisecondCounterHiRes() - lastActivated > 100.0);
     while (!(/*delayPassed && */futureReady))
     {
-        step();
+        addOneItemToQueue();
         futureReady = (fut.wait_for(std::chrono::seconds(0)) == std::future_status::ready);
         delayPassed = (juce::Time::getMillisecondCounterHiRes() - lastActivated > 100.0);
     }
+    //futStepping = std::async(std::launch::async, &pianoVoice::step, this);
+
     for (size_t i = 0; i < currentAmps.size(); i++)
     {
         currentAmps[i] = targetAmps[i];
-    }
-    
+    }    
 }
 
 void pianoVoice::stopNote(float velocity, bool allowTailOff)
@@ -120,8 +120,8 @@ void pianoVoice::getNextSample() {
         W[0] += currentAmps[i] * std::sin(phasesC1[i] + stepLocal);
         W[1] += currentAmps[i] * std::sin(phasesC2[i] + stepLocal);
     }
-    
     std::vector<float> WD = get();
+    
     float alpha = 1.0f - (1.0f - pitch) * 0.95f;
     float beta = 1.0f - alpha;
     W[0] = 0.70f * W[0] * alpha + beta * WD[0];
@@ -137,7 +137,7 @@ void pianoVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int sta
 {
     if(isSounding)
     {        
-        DBG(W[0]);
+        //DBG(W[0]);
         float channels = outputBuffer.getNumChannels();
         if (isSustainOn || keyIsDown)
         {

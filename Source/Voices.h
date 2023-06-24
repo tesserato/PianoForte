@@ -451,21 +451,22 @@ private:
     float period = 0.0f;
     float deltaStep = 0.0f;
     // Physical model
+    //std::future<std::vector<float>> futStepping;
     const float n = 44100.0f;
     size_t t = 0;
     std::vector<float> harmonics;
     std::vector<float> amplitudes;
     std::vector<float> phasesL;
     std::vector<float> phasesR;
-    std::queue<float> Ql;
-    std::queue<float> Qr;
+    std::queue<std::vector<float>> Q;
+    //std::queue<float> Qr;
 
     void forward() {
         MI->eval(I0, targetAmps);
         return;
     };
 
-    void step()
+    std::vector<float> step()
     {
         float yL = 0.0;
         float yR = 0.0;
@@ -481,21 +482,35 @@ private:
             yR += a * std::sin(pR + h) * d;
         }
         t++;
-        Ql.push(yL);
-        Qr.push(yR);
-        return;
+        //Q.push();
+        DBG("t= " + std::to_string(t) + " Q= " + std::to_string(Q.size()));
+        return { yL, yR };
     }
 
+    void addOneItemToQueue()
+    {
+        Q.push(step());
+    }
+
+    //void keepStepping()
+    //{
+    //    while (true)
+    //    {
+    //        step();
+    //    }
+    //}
+
     std::vector<float> get() {
-        if (Ql.empty())
+        //std::vector<float> W;
+        if (Q.empty())
         {
-            step();
+            //futStepping.wait();
+            return step();
+            //futStepping = std::async(std::launch::async, &pianoVoice::step, this);
         }
-        float l = Ql.front();
-        float r = Qr.front();
-        Ql.pop();
-        Qr.pop();
-        return { l, r };
+        std::vector<float> W = Q.front();
+        Q.pop();        
+        return W;
     }
 };
 
