@@ -2,11 +2,11 @@
 #include <JuceHeader.h>
 #include <future>
 #include <random>
-#include <functional> /*lambda functions*/
+//#include <functional> /*lambda functions*/
 #include <cmath>
 #include <queue>
 #include "core/session/onnxruntime_cxx_api.h"
-#include "pocketfft_hdronly.h"
+//#include "pocketfft_hdronly.h"
 
 
 const static std::vector<float> G1F = { 2.01,3.0,3.99,5.02,7.03,9.07,10.09,12.13,16.34,18.47,23.97,43.46,44.6 }; // 6
@@ -14,7 +14,6 @@ const static std::vector<float> G1A = { 0.08361312127094107,0.17722663981890502,
 
 const static std::vector<float> G2F = { 1.98,3.01,4.01,6.01,9.04,11.09,13.13,14.15,14.19,15.19,20.47,22.57,23.69 }; // 13
 const static std::vector<float> G2A = { 0.24269384285644227,0.07052851765757988,0.047061190142169355,0.10840876708699342,0.09188640321466986,0.08144203829761783,0.04228555577561662,0.09610226462853295,0.03785757321294113,0.06726106660383388,0.03668751097990114,0.041375189678632414,0.036410079865069396 };
-
 
 const static std::vector<float> G3F = { 1.0,2.0,3.01,4.01,5.03,6.04,7.05,8.07,9.1,10.13,11.17,13.25,15.38 }; // 37
 const static std::vector<float> G3A = { 0.10197161354012407,0.25818838322735743,0.06275858234133298,0.14671081868086436,0.05433834743401193,0.0374010296158477,0.13903293707516398,0.06196062709021847,0.05305020221441158,0.03110025141297645,0.02143888118545714,0.0159564601968566,0.01609186598537729 };
@@ -44,116 +43,119 @@ template <typename T> float sign(T val)
     return (T(0) < val) - (val < T(0));
 }
 
-template <typename T>
-inline std::vector<T> complexToHalfComplex(std::vector<std::complex<T>> C)
-{
-    std::vector<T> H(2 * (C.size() - 1));
-    H[0] = C[0].real();
-    for (size_t i = 1; i < C.size() - 1; i++)
-    {
-        H[2 * (i - 1) + 1] = C[i].real();
-        H[2 * (i - 1) + 2] = C[i].imag();
-    }
-    H[H.size() - 2] = C.back().real();
-    if (C.back().imag() != 0)
-    {
-        H.push_back(C.back().imag());
-    }
-    return H;
-}
+//template <typename T>
+//inline std::vector<T> complexToHalfComplex(std::vector<std::complex<T>> C)
+//{
+//    std::vector<T> H(2 * (C.size() - 1));
+//    H[0] = C[0].real();
+//    for (size_t i = 1; i < C.size() - 1; i++)
+//    {
+//        H[2 * (i - 1) + 1] = C[i].real();
+//        H[2 * (i - 1) + 2] = C[i].imag();
+//    }
+//    H[H.size() - 2] = C.back().real();
+//    if (C.back().imag() != 0)
+//    {
+//        H.push_back(C.back().imag());
+//    }
+//    return H;
+//}
 
-inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
-{
-    std::vector<float> in = complexToHalfComplex(complexIn);
-    std::vector<float> out(in.size());
-    pocketfft::shape_t shapeReal = { out.size() };
-    pocketfft::stride_t strideReal = { sizeof(float) };    // {(&dataReal[1] - &dataReal[0]) * CHAR_BIT};
-    //pocketfft::stride_t strideComplex = { sizeof(float) }; //{(&dataComplex[1] - &dataComplex[0]) * CHAR_BIT};
-    pocketfft::r2r_fftpack(shapeReal, strideReal, strideReal, { 0 }, false, false, in.data(), out.data(), 1.0f);
-    // #ifdef MYDEBUG
-    //   write_vector(out, "F.csv", ';');
-    // #endif
-    return out;
-}
+//inline std::vector<float> irfft(std::vector<std::complex<float>>& complexIn)
+//{
+//    std::vector<float> in = complexToHalfComplex(complexIn);
+//    std::vector<float> out(in.size());
+//    pocketfft::shape_t shapeReal = { out.size() };
+//    pocketfft::stride_t strideReal = { sizeof(float) };    // {(&dataReal[1] - &dataReal[0]) * CHAR_BIT};
+//    //pocketfft::stride_t strideComplex = { sizeof(float) }; //{(&dataComplex[1] - &dataComplex[0]) * CHAR_BIT};
+//    pocketfft::r2r_fftpack(shapeReal, strideReal, strideReal, { 0 }, false, false, in.data(), out.data(), 1.0f);
+//    // #ifdef MYDEBUG
+//    //   write_vector(out, "F.csv", ';');
+//    // #endif
+//    return out;
+//}
 
-class ManualPiano
-{
-private:
-    float n = 44100.0f;
-    float fps = 44100.0f;
-    size_t idx = 0;
-    size_t t = 0;
-    float fLocal = 0.0;
-    std::vector<float> harmonics;
-    std::vector<float> amplitudes;
-    std::vector<float> phasesL;
-    std::vector<float> phasesR;
-    std::queue<float> Ql;
-    std::queue<float> Qr;
-public:
-    void start(int midiKey, float sampleRate = 44100.0) {
-        fps = sampleRate;
-        t = 0;
-        fLocal = partialFromMidiKey(midiKey) * n / sampleRate;
-        idx = midiKey - 21;
-
-        if (midiKey <= 10 + 20)
-        {
-            harmonics =  G1F;
-            amplitudes = G1A;
-        }
-        else if (midiKey <= 30 + 20)
-        {
-            harmonics = G2F;
-            amplitudes = G2A;
-        }
-        else
-        {
-            harmonics = G3F;
-            amplitudes = G3A;
-        }
-
-        phasesL.clear();
-        phasesR.clear();
-        phasesL.push_back(PHASES_NORM(generator));
-        phasesR.push_back(PHASES_NORM(generator));
-        for (size_t i = 0; i < harmonics.size() - 1; i++)
-        {
-            phasesL.push_back(phasesL.back() + PHASES_NORM(generator));
-            phasesR.push_back(phasesR.back() + PHASES_NORM(generator));
-        }
-    }
-    void step()
-    {
-        float yL = 0.0;
-        float yR = 0.0;
-        for (size_t i = 0; i < harmonics.size(); i++)
-        {
-            float f = harmonics[i] * fLocal;
-            float a = amplitudes[i];
-            float pL = phasesL[i];
-            float pR = phasesR[i];
-            float h = 2.0f * juce::MathConstants<float>::pi * f * float(t) / n;
-            float d = std::exp(-0.0003f * h);
-            yL += a * std::sin(pL + h) * d;
-            yR += a * std::sin(pR + h) * d;
-        }
-        t++;
-        Ql.push(yL);
-        Qr.push(yR);
-        return;
-    }
-    std::vector<float> get() {
-        if (Ql.empty())
-        {
-            step();
-        }
-        std::vector<float> W = { Ql.front(), Qr.front() };
-        Ql.pop();
-        Qr.pop();
-        return W;
-    }
-};
+//class ManualPiano
+//{
+//private:
+//    float n = 44100.0f;
+//    float fps = 44100.0f;
+//    //size_t idx = 0;
+//    size_t t = 0;
+//    float fLocal = 0.0;
+//    std::vector<float> harmonics;
+//    std::vector<float> amplitudes;
+//    std::vector<float> phasesL;
+//    std::vector<float> phasesR;
+//    std::queue<float> Ql;
+//    std::queue<float> Qr;
+//public:
+//    void start(int midiKey, float sampleRate = 44100.0) {
+//        Ql = {};
+//        Qr = {};
+//        fps = sampleRate;
+//        t = 0;
+//        fLocal = partialFromMidiKey(midiKey) * n / sampleRate;
+//        //idx = midiKey - 21;
+//
+//        if (midiKey <= 10 + 20)
+//        {
+//            harmonics =  G1F;
+//            amplitudes = G1A;
+//        }
+//        else if (midiKey <= 30 + 20)
+//        {
+//            harmonics = G2F;
+//            amplitudes = G2A;
+//        }
+//        else
+//        {
+//            harmonics = G3F;
+//            amplitudes = G3A;
+//        }
+//
+//        phasesL.clear();
+//        phasesR.clear();
+//        phasesL.push_back(PHASES_NORM(generator));
+//        phasesR.push_back(PHASES_NORM(generator));
+//        for (size_t i = 0; i < harmonics.size() - 1; i++)
+//        {
+//            phasesL.push_back(phasesL.back() + PHASES_NORM(generator));
+//            phasesR.push_back(phasesR.back() + PHASES_NORM(generator));
+//        }
+//    }
+//    void step()
+//    {
+//        float yL = 0.0;
+//        float yR = 0.0;
+//        for (size_t i = 0; i < harmonics.size(); i++)
+//        {
+//            float f = harmonics[i] * fLocal;
+//            float a = amplitudes[i];
+//            float pL = phasesL[i];
+//            float pR = phasesR[i];
+//            float h = 2.0f * juce::MathConstants<float>::pi * f * float(t) / n;
+//            float d = std::exp(-0.0003f * h);
+//            yL += a * std::sin(pL + h) * d;
+//            yR += a * std::sin(pR + h) * d;
+//        }
+//        t++;
+//        Ql.push(yL);
+//        Qr.push(yR);
+//        return;
+//    }
+//    std::vector<float> get() {
+//        if (Ql.empty())
+//        {
+//            step();
+//        }
+//        float l = Ql.front();
+//        float r = Qr.front();
+//        Ql.pop();
+//        Qr.pop();
+//        return { l, r };
+//    }
+//};
 
 class NeuralModel
  {  
@@ -396,9 +398,8 @@ public:
     NeuralModel* MI;// = NeuralModel(); // = ModelInfo::instance();
     //customSynth* CS;
     double lastActivated = 0.0;
-    float tailOff = 0.0;
-    float tailOffRatio = DEFAULT_TAILOFF_RATIO;
-    bool  isSounding = false;
+    float tailOffRatio = DEFAULT_TAILOFF_RATIO;    
+
     pianoVoice(NeuralModel* _MI) {
         MI = _MI;
         targetAmps = std::vector<float>(MI->outputShape[0], 0);
@@ -424,33 +425,77 @@ public:
     void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override;
 
     bool isVoiceActive() const override {
-        return tailOff > 0.0;
+        return isSounding;
     }
 
     void getNextSample();
 
 private:
-    ManualPiano mp;
+    float tailOff = 0.0;
+    bool  isSounding = false;
     float currentDecay = 1.0f;
+    bool  keyIsDown = false;
+    float level = 0.0f;
+    float midiKey = 0.0f;
+    float fps = 44100.0f;
+    float fLocal = 0.0f;
+    // NN model
     std::future<void> fut;
     std::vector<float> targetAmps;// = std::vector<float>(MI->outputShape[0], 0);
     std::vector<float> currentAmps;// = std::vector<float>(MI->outputShape[0], 0);
     std::vector<float> phasesC1;// = std::vector<float>(MI->outputShape[0], 0);
     std::vector<float> phasesC2;// = std::vector<float>(MI->outputShape[0], 0);
     std::vector<float> I0;// = std::vector<float>(MI->inputShape[0], 0);
-    std::vector<float> W = std::vector<float>(2, 0);
+    std::vector<float> W = std::vector<float>(2, 0.0f);
     long x = 0;
-    bool  keyIsDown = false;
-    float level = 0.0f;
-    float midiKey = 0.0f;
-    float f = 0.0f;
     float period = 0.0f;
     float deltaStep = 0.0f;
-    float fps = 44100.0f;
+    // Physical model
+    const float n = 44100.0f;
+    size_t t = 0;
+    std::vector<float> harmonics;
+    std::vector<float> amplitudes;
+    std::vector<float> phasesL;
+    std::vector<float> phasesR;
+    std::queue<float> Ql;
+    std::queue<float> Qr;
 
     void forward() {
         MI->eval(I0, targetAmps);
         return;
     };
+
+    void step()
+    {
+        float yL = 0.0;
+        float yR = 0.0;
+        for (size_t i = 0; i < harmonics.size(); i++)
+        {
+            float f = harmonics[i] * fLocal;
+            float a = amplitudes[i];
+            float pL = phasesL[i];
+            float pR = phasesR[i];
+            float h = 2.0f * juce::MathConstants<float>::pi * f * float(t) / n;
+            float d = std::exp(-0.0003f * h);
+            yL += a * std::sin(pL + h) * d;
+            yR += a * std::sin(pR + h) * d;
+        }
+        t++;
+        Ql.push(yL);
+        Qr.push(yR);
+        return;
+    }
+
+    std::vector<float> get() {
+        if (Ql.empty())
+        {
+            step();
+        }
+        float l = Ql.front();
+        float r = Qr.front();
+        Ql.pop();
+        Qr.pop();
+        return { l, r };
+    }
 };
 

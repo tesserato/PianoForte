@@ -5,7 +5,7 @@ struct customSynth : public juce::Synthesiser{
     pianoVoice* findFreeVoice(juce::SynthesiserSound* soundToPlay, int midiChannel, int midiNoteNumber, bool stealIfNoneAvailable) const override {
         //pianoVoice* toUse = nullptr;
         pianoVoice* oldest = static_cast<pianoVoice*> (getVoice(0));
-        if (!oldest->isSounding)
+        if (!oldest->isVoiceActive()) // returns isSounding
         {
             DBG("returned voice 0");
             return oldest;
@@ -13,7 +13,7 @@ struct customSynth : public juce::Synthesiser{
         for (int i = 1; i < getNumVoices(); i++)
         {
             pianoVoice* current = static_cast<pianoVoice*> (getVoice(i));
-            if (!current->isSounding)
+            if (!current->isVoiceActive())
             {
                 DBG("returned voice " + std::to_string(i));
                 return current;
