@@ -1,7 +1,14 @@
 Install-Module -Name New-GitHubRelease
 
+New-Item -Path "./Releases/LV2" -ItemType Directory -Force
+$lv2ZipPath = "./Releases/LV2/PianoForte.zip"
+Compress-Archive -Force -Path "./Releases/LV2 Plugin/PianoForte.lv2" -DestinationPath $lv2ZipPath
 
-$note = "Implemented neural waveguides to boost hammer simulation"
+$GitHubToken = Get-Content "./GitHubToken.txt"
+
+
+
+$note = "Dual engine implemented"
 
 # Import the module dynamically from the PowerShell Gallery. Use CurrentUser scope to avoid having to run as admin.
 $version = ""
@@ -27,13 +34,14 @@ $newGitHubReleaseParameters =
 @{
   GitHubUsername       = 'tesserato'
   GitHubRepositoryName = 'PianoForte'
-  GitHubAccessToken    = $Env:GitHubToken
+  GitHubAccessToken    = $GitHubToken
   ReleaseName          = "PianoForte v$version"
   TagName              = "v$version"
   ReleaseNotes         = $note
   AssetFilePaths       = @(
     './Releases/Standalone Plugin/PianoForte.exe',
     './Releases/VST3/PianoForte.vst3'
+    $lv2ZipPath
   )
   IsPreRelease         = $false
   IsDraft              = $true	# Set to true when testing so we don't publish a real release (visible to everyone) by accident.
