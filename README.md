@@ -9,9 +9,9 @@ for further info about the algorithm and intended applications to voice and othe
 
 # Download
 
-## [VST3](https://github.com/tesserato/PianoForte/tree/main/Releases/VST3)
+## [VST3](https://github.com/tesserato/PianoForte/releases)
 
-## [Standalone (Windows x64)](https://github.com/tesserato/PianoForte/tree/main/Releases/Standalone%20Plugin)
+## [Standalone (Windows x64)](https://github.com/tesserato/PianoForte/releases)
 
 # Dependencies (Only if you intend to build from source)
 
