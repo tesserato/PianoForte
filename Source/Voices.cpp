@@ -26,9 +26,10 @@ void pianoVoice::startNote(int midiNoteNumber, float velocity, juce::Synthesiser
         phasesC1[i] = PHASES_NORM(generator);
         phasesC2[i] = PHASES_NORM(generator);
     }
-    fLocal = partialFromMidiKey(midiKey) * n / fps;
+    float f = partialFromMidiKey(midiKey);
+    fLocal = f * n / fps;
     period = fps / fLocal;
-    deltaStep = juce::MathConstants<float>::twoPi * fLocal / fps;
+    deltaStep = juce::MathConstants<float>::twoPi * f / fps;
     // Start physical model
     t = 0;
     if (midiKey <= 10 + 20)
@@ -116,8 +117,8 @@ void pianoVoice::getNextSample() {
     
     float alpha = 1.0f - (1.0f - pitch) * 0.95f;
     float beta = 1.0f - alpha;
-    W[0] = 0.70f * W[0] * alpha + beta * WD[0];
-    W[1] = 0.70f * W[1] * alpha + beta * WD[1];
+    W[0] = W[0] * 0.7f * alpha + beta * WD[0];
+    W[1] = W[1] * 0.7f * alpha + beta * WD[1];
 
     W[0] *= m;
     W[1] *= m;
