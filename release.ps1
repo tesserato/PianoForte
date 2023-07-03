@@ -8,7 +8,7 @@ $GitHubToken = Get-Content "./GitHubToken.txt"
 
 
 
-$note = "Dual engine implemented"
+$note = "fixed issue with framerates other than 44100 Hz distorting AI engine"
 
 # Import the module dynamically from the PowerShell Gallery. Use CurrentUser scope to avoid having to run as admin.
 $version = ""
