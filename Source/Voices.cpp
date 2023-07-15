@@ -117,8 +117,8 @@ void pianoVoice::getNextSample() {
     
     float alpha = 1.0f - (1.0f - pitch) * 0.95f;
     float beta = 1.0f - alpha;
-    W[0] = W[0] * 0.7f * alpha + beta * WD[0];
-    W[1] = W[1] * 0.7f * alpha + beta * WD[1];
+    W[0] = W[0] * 0.7f /** alpha + beta * WD[0]*/;
+    W[1] = W[1] * 0.7f /** alpha + beta * WD[1]*/;
 
     W[0] *= m;
     W[1] *= m;

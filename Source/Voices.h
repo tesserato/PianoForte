@@ -463,6 +463,15 @@ private:
 
     void forward() {
         MI->eval(I0, targetAmps);
+        float ampsSum = 0.0;
+        for (size_t i = 0; i < targetAmps.size(); i++)
+        {
+            ampsSum += targetAmps[i];
+        }
+        for (size_t i = 0; i < targetAmps.size(); i++)
+        {
+            targetAmps[i] /= ampsSum;
+        }
         return;
     };
 
