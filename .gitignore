@@ -8,3 +8,4 @@ addGitHubTokenToEnv.ps1
 Releases
 GitHubToken.txt
 testResults
+lib/onnxruntime.lib

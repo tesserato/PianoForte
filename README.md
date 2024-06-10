@@ -1,6 +1,6 @@
 # Piano Forte Audio Plugin
 
-### Author: [Carlos Tarjano](https://carlos-tarjano.web.app/)
+### Author: [Carlos Tarjano](https://tarjano.web.app/)
 
 Piano synthesizer based on micro (~8KB, ~1500 parameters) neural networks and a novel representation for Quasi-Periodic signals.
 
@@ -13,7 +13,9 @@ for further info about the algorithm and intended applications to voice and othe
 
 ## [Standalone (Windows x64)](https://github.com/tesserato/PianoForte/releases)
 
-# Dependencies (Only if you intend to build from source)
+Using pre-compiled onnxruntime static libraries from [onnxruntime-libs](https://github.com/csukuangfj/onnxruntime-libs)
+
+<!-- # Dependencies (Only if you intend to build from source)
 
 [ONNX Runtime releases](https://github.com/microsoft/onnxruntime/releases)
 
@@ -26,7 +28,7 @@ for further info about the algorithm and intended applications to voice and othe
 
 And add path in Projucer as in the file "PianoForte.jucer"
 
-More details [here](https://github.com/microsoft/onnxruntime/issues/8555)
+More details [here](https://github.com/microsoft/onnxruntime/issues/8555) -->
 
 
 

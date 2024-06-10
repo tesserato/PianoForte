@@ -5,7 +5,7 @@
 //#include <functional> /*lambda functions*/
 #include <cmath>
 #include <queue>
-#include "core/session/onnxruntime_cxx_api.h"
+#include "onnxruntime_cxx_api.h"
 //#include "pocketfft_hdronly.h"
 
 
@@ -26,7 +26,7 @@ static std::default_random_engine generator;
 static std::normal_distribution<float> PHASES_NORM(0, 1.5);
 //static std::normal_distribution<float> PHASES_NOISE(0.01, 0.001);
 //const static float CENT = 1.00057778951f;
-const static float MAX_NUMBER_OF_PERIODS = 4511.0f;
+const static float MAX_NUMBER_OF_PERIODS = 15987.0f;
 const static float DEFAULT_TAILOFF_RATIO = 0.9997;
 const static int POLYPHONY = 10; /*number of notes allowed simultaniously*/
 extern bool isSustainOn;
